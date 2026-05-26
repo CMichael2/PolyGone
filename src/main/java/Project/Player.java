@@ -23,7 +23,7 @@ public class Player extends GameObject{
     }
 
     public int updateHealth(int healthReduction) {
-        playerCurrentHealth -= 1;
+        playerCurrentHealth -= healthReduction;
         return playerCurrentHealth;
     }
 

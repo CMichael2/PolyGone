@@ -11,6 +11,7 @@ public class PolyGone extends Game {
     private boolean isGameFocused = true;
 
     Player player; //creates player variable that follows the code in Player class
+    private GUI gameUI;
 
     private ArrayList<Bullets> bulletsList = new ArrayList<>(); //creates arraylist of bullets
 
@@ -67,12 +68,17 @@ public class PolyGone extends Game {
         //creates player game object
         player = new Player(this);
         add(player);
-    }
+
+        gameUI = new GUI();
+        add(gameUI);
+}
 
     @Override
     public void act() {
+        repaint();
+
         if (!isGameFocused) {
-            // Reset mouse inputs during pause so actions don't buffer
+            //reset mouse inputs during pause
             GameMouseInput.reset();
             return;
         }
@@ -130,6 +136,7 @@ public class PolyGone extends Game {
             if (e.collides(b) || bulletPathIntersectsEnemy(b, bulletPrevX, bulletPrevY, e)) {
 
                 e.takeDamage(1); //updates enemy health info in player class
+
                 remove(b); //removes bullet when collision happens
 
                 //removes enemy when killed
@@ -202,7 +209,12 @@ public class PolyGone extends Game {
 
             //calls method in enemies class for enemy movement and enemy default collision with PLAYER
             if (e.enemyMovementUpdates(this, player, enemySpeed)) {
-                if (player.updateHealth(1) <= 0) {
+
+                int currentPlayerHealth = player.updateHealth(1);
+
+                gameUI.updatePlayerHealthGUI(currentPlayerHealth);
+
+                if (currentPlayerHealth <= 0) {
                     triggerGameOver();
                 }
 
@@ -293,7 +305,8 @@ public class PolyGone extends Game {
         game.setVisible(true);
         game.setBackground(java.awt.Color.BLACK);
         game.initComponents(); //such as game objects
-    }
 
+
+    }
 }
 
