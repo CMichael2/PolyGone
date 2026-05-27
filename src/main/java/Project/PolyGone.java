@@ -11,7 +11,12 @@ public class PolyGone extends Game {
     private boolean isGameFocused = true;
 
     Player player; //creates player variable that follows the code in Player class
-    private GUI gameUI;
+
+    //gui and hud variables/objects
+    private GUI gameUI; //object for referencing gui class
+    private DebugHUD debugHUD;
+    private boolean showDebugHUD = false;
+    private boolean debugKeyWasPressedLastFrame = false;
 
     private ArrayList<Bullets> bulletsList = new ArrayList<>(); //creates arraylist of bullets
 
@@ -20,7 +25,7 @@ public class PolyGone extends Game {
     private ArrayList<Enemies> enemiesList = new ArrayList<>();
     private double enemySpeed = Player.playerSpeed*0.3; //used to determine enemy speed, 50% of player speed
     private long lastEnemySpawnTime = 0;
-    private long enemySpawnRate = 3000; //used to determine the enemy spawn rate in milliseconds
+    private long enemySpawnRate = 500; //used to determine the enemy spawn rate in milliseconds
     private boolean isFirstEnemy = true; //used to begin spawning of enemies
 
     private final Set<Integer> activeKeys = new HashSet<>(); //arraylist to store unlimited active keys
@@ -52,7 +57,7 @@ public class PolyGone extends Game {
             @Override
             public void windowLostFocus(java.awt.event.WindowEvent e) {
                 isGameFocused = false;
-                // Optional: Clear active keys so player doesn't keep moving when unfocused
+                //disables keys when not in focus to prevent player movement
                 activeKeys.clear();
             }
         });
@@ -69,13 +74,20 @@ public class PolyGone extends Game {
         player = new Player(this);
         add(player);
 
-        gameUI = new GUI();
+        //creates gui game object
+        gameUI = new GUI(this, player);
         add(gameUI);
-}
+
+        //creates debug hud game object
+        debugHUD = new DebugHUD(this, player);
+        add(debugHUD);
+
+        this.getContentPane().setComponentZOrder(debugHUD, 0); //moves hud to top layer of screen
+        this.getContentPane().setComponentZOrder(gameUI, 1); //moves gui to 2nd top layer of screen
+    }
 
     @Override
     public void act() {
-        repaint();
 
         if (!isGameFocused) {
             //reset mouse inputs during pause
@@ -85,6 +97,7 @@ public class PolyGone extends Game {
         //player interaction updates
         player.playerMovementUpdate(this); //calls player movement update method inside player class
         player.handlePlayerShooting(this, this.bulletsList); //calls player shooting method inside player class
+        openDebugHUD(); //opens debug hud when f3 key is pressed
 
         //method for bullet creation and collision processing
         bulletBehavior();
@@ -99,6 +112,23 @@ public class PolyGone extends Game {
 
         //resets inputs in mouse input class
         GameMouseInput.reset();
+    }
+
+    private void openDebugHUD() {
+        if (isKeyPressed(KeyEvent.VK_F3)) {
+            //only toggles on first frame of being pressed
+            if (!debugKeyWasPressedLastFrame) {
+                showDebugHUD = !showDebugHUD; //changes the state of debug hud to the opposite
+
+                if (debugHUD != null) { //checks if the debug hud has been created
+                    debugHUD.setDebugHUDVisible(showDebugHUD); //calls method to toggle the debug hud
+                }
+
+                debugKeyWasPressedLastFrame = true; //prevents the toggle from activating again until the key is released
+            }
+        } else {
+            debugKeyWasPressedLastFrame = false;
+        }
     }
 
     private void bulletBehavior() {
@@ -212,8 +242,6 @@ public class PolyGone extends Game {
 
                 int currentPlayerHealth = player.updateHealth(1);
 
-                gameUI.updatePlayerHealthGUI(currentPlayerHealth);
-
                 if (currentPlayerHealth <= 0) {
                     triggerGameOver();
                 }
@@ -270,14 +298,21 @@ public class PolyGone extends Game {
         //calculates distance from enemy center to the closest point on the bullet's trajectory
         double distX = enemyX - closestX;
         double distY = enemyY - closestY;
-        double distance = Math.sqrt(distX * distX + distY * distY);
+
+        double distanceSquared = (distX * distX) + (distY * distY);
+        double combinedRadius = enemyRadius + bulletRadius;
 
         //checks if the distance from the center of the enemy to the center of the bullet at their closest point in the bullets trajectory
         //is less than their combined radius, meaning they have collided.
-        if (distance <= (enemyRadius + bulletRadius)) {
+        if (distanceSquared <= (combinedRadius * combinedRadius)) {
             return true;
         }
         return false;
+    }
+
+    //for debugging purposes
+    public int getEnemyCount() {
+        return this.enemiesList.size();
     }
 
     //closes game if the escape key is pressed
@@ -303,7 +338,7 @@ public class PolyGone extends Game {
 
         //launches window
         game.setVisible(true);
-        game.setBackground(java.awt.Color.BLACK);
+        //game.setBackground(java.awt.Color.BLACK);
         game.initComponents(); //such as game objects
 
 

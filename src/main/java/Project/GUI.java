@@ -5,30 +5,28 @@ import java.awt.*;
 
 public class GUI extends GameObject {
 
-    private int lives;
+    Player player; //reference to object
 
-    private Font font = new Font("Arial", Font.PLAIN, 30);
+    private Font font = new Font("Arial", Font.BOLD, 30);
 
-    public GUI() {
-        setSize(100, 100);
-        setX(0);
-        setY(0);
-        setColor(Color.BLACK);
+    public GUI(PolyGone game, Player player) {
+        this.player = player;
+        this.setBounds(0, 0, game.getWidth(), game.getHeight()); //sets gui size and location
     }
 
-    public void paintComponent(Graphics g) {
-        g.setColor(Color.WHITE);
-        g.setFont(font);
-        g.drawString("lives " + lives, 300, 300);
-        System.out.println("Updated health");
+    @Override
+    public void paint(Graphics g) {
+        Graphics2D g2d = (Graphics2D) g; //cast to 2d graphics for antialiasing
+        g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+
+        //draws text
+        g2d.setColor(Color.WHITE);
+        g2d.setFont(font);
+        g2d.drawString("Lives: " + player.playerCurrentHealth, 0, 35);
     }
 
     @Override
     public void act() {
-
-    }
-
-    public void updatePlayerHealthGUI(int playerCurrentHealth) {
-        lives = playerCurrentHealth;
+        this.repaint(); //do not remove, very important
     }
 }

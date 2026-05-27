@@ -10,7 +10,7 @@ public class Player extends GameObject{
     @Override
     public void act() {}
 
-    public static int playerSpeed = 10; //change to determine player movement speed
+    public static int playerSpeed = 10; //change to determine player movement speed and coordinate change per key press
 
     public int playerMaxHealth = 3;
     public int playerCurrentHealth = playerMaxHealth;
@@ -54,20 +54,16 @@ public class Player extends GameObject{
             this.moveRight();
         }
 
-        // 2. ENFORCE BORDERS AFTER: Absolute hard-clamping to the screen edges
-        // Left border
+        //prevents player from exiting screen
         if (this.getX() < 0) {
             this.setX(0);
         }
-        // Right border (Window width minus player width)
         if (this.getX() > mainGame.getWidth() - this.getWidth()) {
             this.setX(mainGame.getWidth() - this.getWidth());
         }
-        // Top border
         if (this.getY() < 0) {
             this.setY(0);
         }
-        // Bottom border (Window height minus player height)
         if (this.getY() > mainGame.getHeight() - this.getHeight()) {
             this.setY(mainGame.getHeight() - this.getHeight());
         }
