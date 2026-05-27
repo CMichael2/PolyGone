@@ -12,7 +12,7 @@ public class Player extends GameObject{
 
     public static int playerSpeed = 10; //change to determine player movement speed and coordinate change per key press
 
-    public int playerMaxHealth = 3;
+    public int playerMaxHealth = 100;
     public int playerCurrentHealth = playerMaxHealth;
 
     public Player(PolyGone mainGame) { //sets attributes for player game object

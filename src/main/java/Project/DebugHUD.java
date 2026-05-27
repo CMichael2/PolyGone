@@ -40,6 +40,8 @@ public class DebugHUD extends GameObject {
 
         //draws text
         g2d.setColor(Color.WHITE);
+        drawRightAlignedString(g2d, "Health: " + player.playerCurrentHealth, screenRightEdge, getHeight()- 100, font);
+
         //location relative to debug hud bounding box location and aligned with right side
         drawRightAlignedString(g2d, "Player xy: " + player.getX() + ", " + player.getY(), screenRightEdge, getHeight()-10, font);
 

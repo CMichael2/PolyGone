@@ -19,6 +19,7 @@ public class Enemies extends GameObject{
     public static int enemyHeight = 20;
 
     private int health = 3; //change enemy health here
+    public int enemyDamage = 20;
 
     @Override
     public void act() {}

@@ -25,7 +25,7 @@ public class PolyGone extends Game {
     private ArrayList<Enemies> enemiesList = new ArrayList<>();
     private double enemySpeed = Player.playerSpeed*0.3; //used to determine enemy speed, 50% of player speed
     private long lastEnemySpawnTime = 0;
-    private long enemySpawnRate = 500; //used to determine the enemy spawn rate in milliseconds
+    private long enemySpawnRate = 3000; //used to determine the enemy spawn rate in milliseconds
     private boolean isFirstEnemy = true; //used to begin spawning of enemies
 
     private final Set<Integer> activeKeys = new HashSet<>(); //arraylist to store unlimited active keys
@@ -240,7 +240,7 @@ public class PolyGone extends Game {
             //calls method in enemies class for enemy movement and enemy default collision with PLAYER
             if (e.enemyMovementUpdates(this, player, enemySpeed)) {
 
-                int currentPlayerHealth = player.updateHealth(1);
+                int currentPlayerHealth = player.updateHealth(e.enemyDamage);
 
                 if (currentPlayerHealth <= 0) {
                     triggerGameOver();
