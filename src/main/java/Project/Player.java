@@ -17,7 +17,7 @@ public class Player extends GameObject{
 
     public int playerLevel = 0;
     public int currentPlayerXp = 0;
-    public int playerXPBarMaxXP = 10+ (int)(5 * Math.pow(playerLevel, 2)); //player max xp bar formula
+    public int playerXPBarMaxXP = 10; //base xp level up requirement
 
     public Player(PolyGone mainGame) { //sets attributes for player game object
         this.setSize(40, 40);
@@ -40,7 +40,8 @@ public class Player extends GameObject{
 
     public void updatePlayerLevel() {
         playerLevel += 1;
-        currentPlayerXp = 0;
+        currentPlayerXp = 0; //reset xp
+        this.playerXPBarMaxXP = 10 + (int)(5 * Math.pow(playerLevel, 2)); //calculates new xp level up requirements
     }
 
     //movement for player
