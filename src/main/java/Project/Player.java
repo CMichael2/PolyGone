@@ -15,6 +15,10 @@ public class Player extends GameObject{
     public int playerMaxHealth = 100;
     public int playerCurrentHealth = playerMaxHealth;
 
+    public int playerLevel = 0;
+    public int currentPlayerXp = 0;
+    public int playerXPBarMaxXP = 10+ (int)(5 * Math.pow(playerLevel, 2)); //player max xp bar formula
+
     public Player(PolyGone mainGame) { //sets attributes for player game object
         this.setSize(40, 40);
         this.setX((mainGame.getWidth() / 2) - (this.getHeight() / 2));
@@ -25,6 +29,18 @@ public class Player extends GameObject{
     public int updateHealth(int healthReduction) {
         playerCurrentHealth -= healthReduction;
         return playerCurrentHealth;
+    }
+
+    public void updatePlayerXP(int playerXPIncrease) {
+        currentPlayerXp += playerXPIncrease;
+        if (currentPlayerXp >= playerXPBarMaxXP) {
+            updatePlayerLevel();
+        }
+    }
+
+    public void updatePlayerLevel() {
+        playerLevel += 1;
+        currentPlayerXp = 0;
     }
 
     //movement for player

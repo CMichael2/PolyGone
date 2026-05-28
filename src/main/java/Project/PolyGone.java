@@ -140,7 +140,7 @@ public class PolyGone extends Game {
             int bulletPrevX = b.getX();
             int bulletPrevY = b.getY();
 
-            //checks if the bullet should be removed based on conditions in bulletUpdates method in the bullets class
+            //checks if the bullet should be removed if it has reached its firing distance(lifespan) in bulletUpdates method in the bullets class
             if (b.bulletUpdates(this)) {
                 remove(b);
                 bulletsList.remove(i);
@@ -173,6 +173,7 @@ public class PolyGone extends Game {
                 if (e.isDead()) {
                     remove(e);
                     enemiesList.remove(j);
+                    player.updatePlayerXP(1);
                     this.repaint();
                 }
                 return true;

@@ -9,12 +9,14 @@ public class DebugHUD extends GameObject {
     Player player; //reference to object
     PolyGone game;
 
+    //fps counter variables
     private long lastTime = System.nanoTime();
     private double fps = 0.0; //do not change values
     private int frameCount = 0;
     private long fpsTimer = System.currentTimeMillis();
 
-    private Font font = new Font("Arial", Font.BOLD, 30);
+    //text display variables
+    private Font font = new Font("OCR A Extended", Font.PLAIN, 15);
     private boolean isVisible = false;
 
     public DebugHUD(PolyGone game, Player player) {
@@ -38,24 +40,24 @@ public class DebugHUD extends GameObject {
 
         int screenRightEdge = getWidth() - 10;
 
-        //draws text
-        g2d.setColor(Color.WHITE);
-        drawRightAlignedString(g2d, "Health: " + player.playerCurrentHealth, screenRightEdge, getHeight()- 100, font);
+        g2d.setColor(Color.WHITE); //sets text color
 
         //location relative to debug hud bounding box location and aligned with right side
         drawRightAlignedString(g2d, "Player xy: " + player.getX() + ", " + player.getY(), screenRightEdge, getHeight()-10, font);
 
         int enemyCount = game.getEnemyCount();
-        drawRightAlignedString(g2d, "Enemy count: " + enemyCount, screenRightEdge, getHeight()-40, font);
+        drawRightAlignedString(g2d, "Enemy count: " + enemyCount, screenRightEdge, getHeight()-25, font);
 
-        drawRightAlignedString(g2d, "FPS: " + fps, screenRightEdge, getHeight()-70, font);
+        drawRightAlignedString(g2d, "FPS: " + fps, screenRightEdge, getHeight()-40, font);
+
+        drawRightAlignedString(g2d, "Health: " + player.playerCurrentHealth, screenRightEdge, getHeight()- 55, font);
     }
 
     public void drawRightAlignedString(Graphics g, String text, int rightEdgeX, int y, Font font) {
         FontMetrics metrics = g.getFontMetrics(font);
 
         int textWidth = metrics.stringWidth(text); //gets the width of the string in pixels
-        int x = rightEdgeX - textWidth; //finds the starting point location of the string
+        int x = rightEdgeX - textWidth; //gets the starting point location of the string
 
         //draws string
         g.setFont(font);
