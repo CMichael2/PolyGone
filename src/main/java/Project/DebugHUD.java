@@ -51,6 +51,16 @@ public class DebugHUD extends GameObject {
         drawRightAlignedString(g2d, "FPS: " + fps, screenRightEdge, getHeight()-40, font);
 
         drawRightAlignedString(g2d, "Health: " + player.playerCurrentHealth, screenRightEdge, getHeight()- 55, font);
+
+        drawRightAlignedString(g2d, "Player total xp: " + player.totalPlayerXp, screenRightEdge, getHeight()- 70, font);
+
+        drawRightAlignedString(g2d, "Player xp level up requirements: " + player.playerXPBarMaxXP, screenRightEdge, getHeight()- 85, font);
+
+        drawRightAlignedString(g2d, "Current player xp: " + player.currentPlayerXp, screenRightEdge, getHeight()- 100, font);
+
+        drawRightAlignedString(g2d, "Current ammo count: " + player.currentAmmo, screenRightEdge, getHeight()- 115, font);
+
+        drawRightAlignedString(g2d, "Max ammo: " + player.maxAmmo, screenRightEdge, getHeight()- 130, font);
     }
 
     public void drawRightAlignedString(Graphics g, String text, int rightEdgeX, int y, Font font) {

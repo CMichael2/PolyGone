@@ -17,7 +17,9 @@ public class Player extends GameObject{
 
     public int playerLevel = 0;
     public int currentPlayerXp = 0;
+    public int totalPlayerXp = 0;
     public int playerXPBarMaxXP = 10; //base xp level up requirement
+    public final int PLAYER_XP_BAR_MAX_XP_BASE = 10;
 
     public Player(PolyGone mainGame) { //sets attributes for player game object
         this.setSize(40, 40);
@@ -31,17 +33,19 @@ public class Player extends GameObject{
         return playerCurrentHealth;
     }
 
-    public void updatePlayerXP(int playerXPIncrease) {
+    public void updatePlayerXP(int playerXPIncrease, PolyGone game) {
         currentPlayerXp += playerXPIncrease;
+        totalPlayerXp += playerXPIncrease;
         if (currentPlayerXp >= playerXPBarMaxXP) {
-            updatePlayerLevel();
+            updatePlayerLevel(game);
         }
     }
 
-    public void updatePlayerLevel() {
+    public void updatePlayerLevel(PolyGone game) {
         playerLevel += 1;
         currentPlayerXp = 0; //reset xp
-        this.playerXPBarMaxXP = 10 + (int)(5 * Math.pow(playerLevel, 2)); //calculates new xp level up requirements
+        this.playerXPBarMaxXP = 10 + (int)((Math.pow(playerLevel, 1.8)/4.0)+0.5); //calculates new xp level up requirements
+        game.enemySpawnRate = 1000 - (int)(playerLevel*10);
     }
 
     //movement for player
@@ -84,6 +88,8 @@ public class Player extends GameObject{
         if (this.getY() > mainGame.getHeight() - this.getHeight()) {
             this.setY(mainGame.getHeight() - this.getHeight());
         }
+
+        this.updateAmmoRegen();
     }
 
     //variables for bullet creation placed here inside class that creates the object
@@ -102,7 +108,7 @@ public class Player extends GameObject{
         double distanceForBullets;
 
         //only shoots if the left click/space bar is held/clicked and the reload time is over
-        if ((mainGame.isKeyPressed(KeyEvent.VK_SPACE) || GameMouseInput.isMouseLeftClickPressed) && (System.currentTimeMillis() - lastShotTime) > shotCooldown) {
+        if ((mainGame.isKeyPressed(KeyEvent.VK_SPACE) || GameMouseInput.isMouseLeftClickPressed) && (System.currentTimeMillis() - lastShotTime) > shotCooldown && currentAmmo > 0) {
 
             //creating new bullet instance
             Bullets newBullet = new Bullets();
@@ -131,8 +137,43 @@ public class Player extends GameObject{
 
                 //updating time of addition of bullet for bullet lifespan and firing cooldown/rate check
                 lastShotTime = System.currentTimeMillis();
+
+                currentAmmo--;
             }
         }
+    }
+
+    public int maxAmmo = 10; //sets max ammo
+    public int currentAmmo = maxAmmo;
+    public long lastAmmoRegenTime = 0; //do not change
+    public long ammoRegenCooldown = 1000; //sets ammo regeneration time
+
+    public void updateAmmoRegen() {
+        if (currentAmmo < maxAmmo) { //only regens ammo when needed
+            long currentTime = System.currentTimeMillis();
+
+            if (currentTime - lastAmmoRegenTime > ammoRegenCooldown) { //waits till the regeneration time is over to regen ammo
+                currentAmmo++;
+                lastAmmoRegenTime = currentTime; // Reset the regeneration timer
+            }
+        } else {
+            lastAmmoRegenTime = System.currentTimeMillis();
+        }
+    }
+
+    public double getAmmoRegenProgress() {
+        //if ammo is full, progress is 0
+        if (currentAmmo >= maxAmmo) {
+            return 0.0;
+        }
+
+        long timeElapsed = System.currentTimeMillis() - lastAmmoRegenTime;
+
+        //calculate percentage of completion
+        double progress = (double) timeElapsed / ammoRegenCooldown;
+
+        // Clamp the value between 0.0 and 1.0 just to be safe
+        return Math.max(0.0, Math.min(1.0, progress));
     }
 }
 

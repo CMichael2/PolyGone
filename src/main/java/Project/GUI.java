@@ -1,7 +1,5 @@
 package Project;
 
-//FIX XP SCALING
-
 import Framework.GameObject;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -58,6 +56,10 @@ public class GUI extends GameObject {
             if (heartImage != null) {
                 g2d.drawImage(heartImage, 28, 64, 40, 40, null); //adds heart sprite
             }
+
+            drawAmmoBar(g2d, 25, this.getHeight() - 60, player.maxAmmo, player.currentAmmo);
+
+            drawAmmoRegenBar(g2d, 25, this.getHeight() - 30, player.maxAmmo, player.currentAmmo, player.lastAmmoRegenTime, player.ammoRegenCooldown);
         }
     }
 
@@ -113,6 +115,70 @@ public class GUI extends GameObject {
             g2d.fillRect(x + 3, y + 3, fillWidth - 6, barHeight - 6);
 
             g2d.setColor(new Color(0, 225, 235)); //bright cyan xp bar
+            g2d.fillRect(x + 3, y + 3, fillWidth - 6, barHeight - 10);
+        }
+    }
+
+    public void drawAmmoBar(Graphics2D g2d, int x, int y, int maxAmmo, int currentAmmo) {
+        //ammo bar dimensions
+        int barWidth = 200;
+        int barHeight = 25; //thickness of bar
+
+        //calculates the width of the ammo bar
+        double ammoBarPercentage = (double) currentAmmo / maxAmmo; //casts to double to avoid rounding to 0
+        ammoBarPercentage = Math.max(0.0, Math.min(1.0, ammoBarPercentage)); //makes sure the value is between 0 and 1
+        int fillWidth = (int) (barWidth * ammoBarPercentage);
+
+        //draws black border rectangle
+        g2d.setColor(new Color(20, 20, 20));
+        g2d.fillRect(x, y, barWidth, barHeight);
+
+        //draws background ammo bar
+        g2d.setColor(new Color(60, 50, 15)); //dark cyan color
+        g2d.fillRect(x + 3, y + 3, barWidth - 6, barHeight - 6);
+
+        //draws ammo bar
+        if (fillWidth > 6) { //only draws if the thickness is valid
+            g2d.setColor(new Color(190, 160, 0)); //dark cyan shadow bar
+            g2d.fillRect(x + 3, y + 3, fillWidth - 6, barHeight - 6);
+
+            g2d.setColor(new Color(245, 215, 0)); //bright cyan ammo bar
+            g2d.fillRect(x + 3, y + 3, fillWidth - 6, barHeight - 10);
+        }
+    }
+
+    public void drawAmmoRegenBar(Graphics2D g2d, int x, int y, int maxAmmo, int currentAmmo, long lastAmmoRegenTime, long ammoRegenCooldown) {
+        //ammo bar dimensions
+        int barWidth = 200;
+        int barHeight = 10; //thickness of bar
+        double ammoRegenBarPercentage;
+
+        //if ammo is full, progress is 0
+        if (currentAmmo >= maxAmmo) {
+            ammoRegenBarPercentage = 0.0;
+        }
+
+        long timeElapsed = System.currentTimeMillis() - lastAmmoRegenTime;
+
+        //calculate percentage of completion
+        double progress = (double) timeElapsed / ammoRegenCooldown;
+        ammoRegenBarPercentage = Math.max(0.0, Math.min(1.0, progress)); //makes sure value is between 0 and 1
+        int fillWidth = (int) (barWidth * ammoRegenBarPercentage);
+
+        //draws black border rectangle
+        g2d.setColor(new Color(20, 20, 20));
+        g2d.fillRect(x, y, barWidth, barHeight);
+
+        //draws background ammo bar
+        g2d.setColor(new Color(60, 50, 15)); //dark cyan color
+        g2d.fillRect(x + 3, y + 3, barWidth - 6, barHeight - 6);
+
+        //draws ammo bar
+        if (fillWidth > 6) { //only draws if the thickness is valid
+            g2d.setColor(new Color(190, 160, 0)); //dark cyan shadow bar
+            g2d.fillRect(x + 3, y + 3, fillWidth - 6, barHeight - 6);
+
+            g2d.setColor(new Color(245, 215, 0)); //bright cyan ammo bar
             g2d.fillRect(x + 3, y + 3, fillWidth - 6, barHeight - 10);
         }
     }

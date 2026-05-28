@@ -25,7 +25,7 @@ public class PolyGone extends Game {
     private ArrayList<Enemies> enemiesList = new ArrayList<>();
     private double enemySpeed = Player.playerSpeed*0.3; //used to determine enemy speed, 50% of player speed
     private long lastEnemySpawnTime = 0;
-    private long enemySpawnRate = 3000; //used to determine the enemy spawn rate in milliseconds
+    public long enemySpawnRate = 1000; //used to determine the enemy spawn rate in milliseconds
     private boolean isFirstEnemy = true; //used to begin spawning of enemies
 
     private final Set<Integer> activeKeys = new HashSet<>(); //arraylist to store unlimited active keys
@@ -173,7 +173,7 @@ public class PolyGone extends Game {
                 if (e.isDead()) {
                     remove(e);
                     enemiesList.remove(j);
-                    player.updatePlayerXP(1);
+                    player.updatePlayerXP(1, this);
                     this.repaint();
                 }
                 return true;
@@ -261,6 +261,9 @@ public class PolyGone extends Game {
         //moves player back to middle of the screen
         player.setX((this.getWidth() / 2) - (player.getWidth() / 2));
         player.setY((this.getHeight() / 2) - (player.getHeight() / 2));
+        player.playerLevel = 0;
+        player.playerXPBarMaxXP = player.PLAYER_XP_BAR_MAX_XP_BASE;
+        player.currentPlayerXp = 0;
     }
 
     //ray casting to determine if bullets will collide with enemies
