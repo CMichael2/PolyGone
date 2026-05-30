@@ -94,8 +94,8 @@ public class Player extends GameObject{
 
     //variables for bullet creation placed here inside class that creates the object
     private double bulletSpeed = 12.0; //change to determine bullet speed
-    private long lastShotTime = 0;
-    private long shotCooldown = 100; //change to determine the firing rate/delay in milliseconds
+    public long lastShotTime = 0;
+    public long shotCooldown = 200; //change to determine the firing rate/delay in milliseconds
     public static int bulletWidth = 10; //please update width and height to the same values to prevent ellipse hitboxes
     public static int bulletHeight = 10;
 
@@ -146,7 +146,7 @@ public class Player extends GameObject{
     public int maxAmmo = 10; //sets max ammo
     public int currentAmmo = maxAmmo;
     public long lastAmmoRegenTime = 0; //do not change
-    public long ammoRegenCooldown = 1000; //sets ammo regeneration time
+    public long ammoRegenCooldown = 400; //sets ammo regeneration time
 
     public void updateAmmoRegen() {
         if (currentAmmo < maxAmmo) { //only regens ammo when needed

@@ -200,7 +200,7 @@ public abstract class Game extends JFrame {
         menuBar.add(menuFile);
         menuFile.add(menuFileExit);
         setJMenuBar(menuBar);
-        setTitle("Pong");
+        setTitle("PolyGone The Game");
                
         // Add window listener.
         addWindowListener (

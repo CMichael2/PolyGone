@@ -14,6 +14,9 @@ public class PolyGone extends Game {
 
     //gui and hud variables/objects
     private GUI gameUI; //object for referencing gui class
+    private PauseMenu pauseMenu;
+    private boolean showPauseMenu =  false;
+    private boolean pauseMenuKeyWasPressedLastFrame = false;
     private DebugHUD debugHUD;
     private boolean showDebugHUD = false;
     private boolean debugKeyWasPressedLastFrame = false;
@@ -25,7 +28,7 @@ public class PolyGone extends Game {
     private ArrayList<Enemies> enemiesList = new ArrayList<>();
     private double enemySpeed = Player.playerSpeed*0.3; //used to determine enemy speed, 50% of player speed
     private long lastEnemySpawnTime = 0;
-    public long enemySpawnRate = 1000; //used to determine the enemy spawn rate in milliseconds
+    public long enemySpawnRate = 2000; //used to determine the enemy spawn rate in milliseconds
     private boolean isFirstEnemy = true; //used to begin spawning of enemies
 
     private final Set<Integer> activeKeys = new HashSet<>(); //arraylist to store unlimited active keys
@@ -82,16 +85,36 @@ public class PolyGone extends Game {
         debugHUD = new DebugHUD(this, player);
         add(debugHUD);
 
-        this.getContentPane().setComponentZOrder(debugHUD, 0); //moves hud to top layer of screen
-        this.getContentPane().setComponentZOrder(gameUI, 1); //moves gui to 2nd top layer of screen
+        pauseMenu = new PauseMenu(this, player);
+        add(pauseMenu);
+
+        this.getContentPane().setComponentZOrder(pauseMenu, 0); //moves hud to top layer of screen
+        this.getContentPane().setComponentZOrder(debugHUD, 1); //moves hud to top layer of screen
+        this.getContentPane().setComponentZOrder(gameUI, 2); //moves gui to 2nd top layer of screen
     }
 
     @Override
     public void act() {
 
+        openPauseMenu();
+
+        if (showPauseMenu) {
+            if (pauseMenu != null) {
+                pauseMenu.act();
+            }
+            //resets mouse inputs during pause
+            GameMouseInput.reset();
+            return;
+        }
+
         if (!isGameFocused) {
             //reset mouse inputs during pause
             GameMouseInput.reset();
+            //opens pause menu
+            showPauseMenu = true;
+            if (pauseMenu != null) {
+                pauseMenu.setPauseMenuVisible(true);
+            }
             return;
         }
         //player interaction updates
@@ -107,8 +130,6 @@ public class PolyGone extends Game {
 
         //method for enemy updates including movement, collision handled in other methods and in enemies class
         enemyBehaviorUpdates();
-
-        exitGame();
 
         //resets inputs in mouse input class
         GameMouseInput.reset();
@@ -128,6 +149,23 @@ public class PolyGone extends Game {
             }
         } else {
             debugKeyWasPressedLastFrame = false;
+        }
+    }
+
+    private void openPauseMenu() {
+        if (isKeyPressed(KeyEvent.VK_ESCAPE)) {
+            //only toggles on first frame of being pressed
+            if (!pauseMenuKeyWasPressedLastFrame) {
+                showPauseMenu = !showPauseMenu; //changes the state of debug hud to the opposite
+
+                if (pauseMenu != null) { //checks if the debug hud has been created
+                    pauseMenu.setPauseMenuVisible(showPauseMenu); //calls method to toggle the debug hud
+                }
+
+                pauseMenuKeyWasPressedLastFrame = true; //prevents the toggle from activating again until the key is released
+            }
+        } else {
+            pauseMenuKeyWasPressedLastFrame = false;
         }
     }
 
@@ -320,10 +358,8 @@ public class PolyGone extends Game {
     }
 
     //closes game if the escape key is pressed
-    private void exitGame() {
-        if (isKeyPressed(KeyEvent.VK_ESCAPE)) {
-            System.exit(0);
-        }
+    public void exitGame() {
+        System.exit(0);
     }
 
     //main method
@@ -344,8 +380,6 @@ public class PolyGone extends Game {
         game.setVisible(true);
         //game.setBackground(java.awt.Color.BLACK);
         game.initComponents(); //such as game objects
-
-
     }
 }
 
