@@ -10,13 +10,13 @@ public class Player extends GameObject{
     @Override
     public void act() {}
 
-    public static int playerSpeed = 10; //change to determine player movement speed and coordinate change per key press
+    public int playerSpeed = 10; //change to determine player movement speed and coordinate change per key press
 
     public int playerMaxHealth = 100;
     public int playerCurrentHealth = playerMaxHealth;
 
-    public int playerLevel = 49;
-    public int currentPlayerXp = 0;
+    public int playerLevel = 0; //starting player level
+    public double currentPlayerXp = 0;
     public int totalPlayerXp = 0;
     public int playerXPBarMaxXP = 10 + (int)((Math.pow(playerLevel, 1.8)/4.0)+0.5);; //base xp level up requirement
     public final int PLAYER_XP_BAR_MAX_XP_BASE = 10;
@@ -33,9 +33,9 @@ public class Player extends GameObject{
         return playerCurrentHealth;
     }
 
-    public void updatePlayerXP(int playerXPIncrease, PolyGone game) {
+    public void updatePlayerXP(double playerXPIncrease, PolyGone game) {
         currentPlayerXp += playerXPIncrease;
-        totalPlayerXp += playerXPIncrease;
+        totalPlayerXp += (int)playerXPIncrease;
         if (currentPlayerXp >= playerXPBarMaxXP) {
             updatePlayerLevel(game);
         }
@@ -45,10 +45,11 @@ public class Player extends GameObject{
         playerLevel += 1;
         if (playerLevel < 50) {
             game.openUpgradeMenu();
+            System.out.println("Player leveled up to " + playerLevel);
         }
         currentPlayerXp = 0; //reset xp
         this.playerXPBarMaxXP = 10 + (int)((Math.pow(playerLevel, 1.8)/4.0)+0.5); //calculates new xp level up requirements
-        game.enemySpawnRate = 3000 - (int)(playerLevel*10);
+        game.enemySpawnRate = game.baseEnemySpawnRate - (playerLevel*35);
     }
 
     //movement for player
@@ -96,7 +97,7 @@ public class Player extends GameObject{
     }
 
     //variables for bullet creation placed here inside class that creates the object
-    private double bulletSpeed = 12.0; //change to determine bullet speed
+    public double bulletSpeed = 12.0; //change to determine bullet speed
     public long lastShotTime = 0;
     public long shotCooldown = 200; //change to determine the firing rate/delay in milliseconds
     public static int bulletWidth = 10; //please update width and height to the same values to prevent ellipse hitboxes

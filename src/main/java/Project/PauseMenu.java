@@ -17,6 +17,9 @@ public class PauseMenu extends GameObject {
     private Font font = new Font("Consolas", Font.BOLD, 30);
     private boolean isVisible = false;
 
+    private final int buttonWidth = 150;
+    private final int buttonHeight = 50;
+
     public PauseMenu(PolyGone game, Player player) {
         this.player = player;
         this.game = game;
@@ -118,11 +121,6 @@ public class PauseMenu extends GameObject {
             g2d.fillRect(x + buttonWidth - 2 - thickness, y + 2, thickness, buttonHeight - 4);
         }
 
-        //exits game if exit button is clicked
-        if (isHovered && GameMouseInput.isMouseLeftClickPressed) {
-            game.exitGame();
-        }
-
         //button text centering and creation
         String text = "Exit";
         g2d.setFont(font);
@@ -186,11 +184,6 @@ public class PauseMenu extends GameObject {
             g2d.fillRect(x + buttonWidth - 2 - thickness, y + 2, thickness, buttonHeight - 4);
         }
 
-        //unpauses game when button is clicked
-        if (isHovered && GameMouseInput.isMouseLeftClickPressed) {
-            game.unpauseGame();
-        }
-
         //button text centering and creation
         String text = "Resume";
         g2d.setFont(font);
@@ -203,6 +196,29 @@ public class PauseMenu extends GameObject {
 
     @Override
     public void act() {
+        if (!isVisible) return;
+        int midX = this.getWidth() / 2;
+        int resumeY = 500;
+        int exitY = 700;
+
+        int mouseX = GameMouseInput.mouseX;
+        int mouseY = GameMouseInput.mouseY;
+
+        if (GameMouseInput.isMouseLeftClickPressed) {
+            int rx = midX - buttonWidth / 2;
+            int ry = resumeY - buttonHeight / 2;
+            if (mouseX >= rx && mouseX <= rx + buttonWidth && mouseY >= ry && mouseY <= ry + buttonHeight) {
+                game.unpauseGame();
+                return;
+            }
+
+            int ex = midX - buttonWidth / 2;
+            int ey = exitY - buttonHeight / 2;
+            if (mouseX >= ex && mouseX <= ex + buttonWidth && mouseY >= ey && mouseY <= ey + buttonHeight) {
+                game.exitGame();
+                return;
+            }
+        }
         this.repaint(); //do not remove, very important
     }
 

@@ -35,10 +35,12 @@ public class PolyGone extends Game {
     //class enemy variables
     //placed here because enemies are spawned by the main game and follow code in enemies class
     private ArrayList<Enemies> enemiesList = new ArrayList<>();
-    private double enemySpeed = Player.playerSpeed*0.3; //used to determine enemy speed, 50% of player speed
+    private double enemySpeed = 4.0; //used to determine enemy speed, 33% of default player speed
     private long lastEnemySpawnTime = 0;
-    public long enemySpawnRate = 3000; //used to determine the enemy spawn rate in milliseconds
+    public int baseEnemySpawnRate = 2000;
+    public int enemySpawnRate = 2000; //used to determine the enemy spawn rate in milliseconds
     private boolean isFirstEnemy = true; //used to begin spawning of enemies
+    public double enemyDroppedXp = 1.0;
 
     private WinMenu winMenu;
     public boolean showWinMenu = false;
@@ -99,7 +101,7 @@ public class PolyGone extends Game {
         debugHUD = new DebugHUD(this, player);
         add(debugHUD);
 
-        upgradeMenu = new UpgradeMenu(this, player);
+        upgradeMenu = new UpgradeMenu(this, player, debugHUD);
         add(upgradeMenu);
 
         pauseMenu = new PauseMenu(this, player);
@@ -109,10 +111,10 @@ public class PolyGone extends Game {
         add(winMenu);
 
         //moves game objects to front or back
-        this.getContentPane().setComponentZOrder(winMenu, 0);
-        this.getContentPane().setComponentZOrder(pauseMenu, 1);
-        this.getContentPane().setComponentZOrder(upgradeMenu, 2);
-        this.getContentPane().setComponentZOrder(debugHUD, 3);
+        this.getContentPane().setComponentZOrder(debugHUD, 0);
+        this.getContentPane().setComponentZOrder(winMenu, 1);
+        this.getContentPane().setComponentZOrder(pauseMenu, 2);
+        this.getContentPane().setComponentZOrder(upgradeMenu, 3);
         this.getContentPane().setComponentZOrder(gameUI, 4);
         this.getContentPane().setComponentZOrder(player, 5);
     }
@@ -133,7 +135,7 @@ public class PolyGone extends Game {
             if (pauseMenu != null) {
                 pauseMenu.act();
             }
-            GameMouseInput.reset(); //resets mouse inputs during pause
+            GameMouseInput.reset();
             return;
         }
 
@@ -141,7 +143,7 @@ public class PolyGone extends Game {
             if (winMenu != null) {
                 winMenu.act();
             }
-            GameMouseInput.reset(); //resets mouse inputs during pause
+            GameMouseInput.reset();
             return;
         }
 
@@ -203,6 +205,9 @@ public class PolyGone extends Game {
         if (pauseMenu != null) {
             pauseMenu.setPauseMenuVisible(false);
         }
+        if (showUpgradeMenu) {
+            this.upgradeMenuOpenTime = System.currentTimeMillis();
+        }
         GameMouseInput.isMouseLeftClickPressed = false;
         GameMouseInput.reset();
     }
@@ -214,6 +219,7 @@ public class PolyGone extends Game {
             upgradeMenu.setUpgradeMenuVisible(true);
         }
         GameMouseInput.reset();
+        this.repaint();
     }
 
     public void closeUpgradeMenu() {
@@ -253,6 +259,13 @@ public class PolyGone extends Game {
         if (isKeyPressed(KeyEvent.VK_ESCAPE)) {
             //only toggles on first frame of being pressed
             if (!pauseMenuKeyWasPressedLastFrame) {
+                if (!showPauseMenu && showUpgradeMenu) {
+                    long now = System.currentTimeMillis();
+                    long timeSpentInUpgradeSoFar = now - upgradeMenuOpenTime;
+                    for (Bullets b : bulletsList) {
+                        b.bulletTimeOfFire += timeSpentInUpgradeSoFar;
+                    }
+                }
                 pauseGame(!showPauseMenu);
                 pauseMenuKeyWasPressedLastFrame = true; //prevents the toggle from activating again until the key is released
             }
@@ -303,7 +316,7 @@ public class PolyGone extends Game {
                 if (e.isDead()) {
                     remove(e);
                     enemiesList.remove(j);
-                    player.updatePlayerXP(300, this);
+                    player.updatePlayerXP(enemyDroppedXp, this);
                     this.repaint();
                 }
                 return true;
@@ -467,6 +480,7 @@ public class PolyGone extends Game {
 
         this.isFirstEnemy = true;
         this.lastEnemySpawnTime = 0;
+        enemySpawnRate = baseEnemySpawnRate;
 
         player.playerCurrentHealth = player.playerMaxHealth; //resets player health
 

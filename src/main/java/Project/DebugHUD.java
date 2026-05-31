@@ -2,7 +2,6 @@ package Project;
 
 import Framework.GameObject;
 import java.awt.*;
-import java.util.ArrayList;
 
 public class DebugHUD extends GameObject {
 
@@ -10,7 +9,6 @@ public class DebugHUD extends GameObject {
     PolyGone game;
 
     //fps counter variables
-    private long lastTime = System.nanoTime();
     private double fps = 0.0; //do not change values
     private int frameCount = 0;
     private long fpsTimer = System.currentTimeMillis();
@@ -56,11 +54,13 @@ public class DebugHUD extends GameObject {
 
         drawRightAlignedString(g2d, "Player xp level up requirements: " + player.playerXPBarMaxXP, screenRightEdge, getHeight()- 85, font);
 
-        drawRightAlignedString(g2d, "Current player xp: " + player.currentPlayerXp, screenRightEdge, getHeight()- 100, font);
+        drawRightAlignedString(g2d, "Current player xp: " + String.format("%.1f", (double)player.currentPlayerXp), screenRightEdge, getHeight()-100, font);
 
         drawRightAlignedString(g2d, "Current ammo count: " + player.currentAmmo, screenRightEdge, getHeight()- 115, font);
 
         drawRightAlignedString(g2d, "Max ammo: " + player.maxAmmo, screenRightEdge, getHeight()- 130, font);
+
+        drawRightAlignedString(g2d, "Enemy spawn rate: Every " + (double)(game.enemySpawnRate)/1000 + " seconds", screenRightEdge, getHeight() - 145, font);
     }
 
     public void drawRightAlignedString(Graphics g, String text, int rightEdgeX, int y, Font font) {

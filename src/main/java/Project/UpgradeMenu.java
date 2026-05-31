@@ -11,6 +11,7 @@ public class UpgradeMenu extends GameObject {
 
     Player player; //reference to object
     PolyGone game;
+    DebugHUD debugHUD;
 
     private BufferedImage blurredSnapshot = null;
     private boolean needsBlurRefresh = false; //generates a new blur asset?
@@ -18,9 +19,19 @@ public class UpgradeMenu extends GameObject {
     private Font font = new Font("Consolas", Font.BOLD, 30);
     private boolean isVisible = false;
 
-    public UpgradeMenu(PolyGone game, Player player) {
+    //stores card variants
+    private int[] cardRarities = new int[3]; //3 cards
+    private int[] cardOptions = new int[3];
+
+    private final int cardWidth = 350;
+    private final int cardHeight = 500;
+
+    private boolean hasMouseBeenReleasedSinceOpen = false;
+
+    public UpgradeMenu(PolyGone game, Player player, DebugHUD debugHUD) {
         this.player = player;
         this.game = game;
+        this.debugHUD = debugHUD;
         this.setBounds(0, 0, game.getWidth(), game.getHeight()); //sets gui size and location
     }
 
@@ -28,12 +39,36 @@ public class UpgradeMenu extends GameObject {
         this.isVisible = visible;
         if (visible) {
             this.needsBlurRefresh = true; //tells game to blur background
+            this.hasMouseBeenReleasedSinceOpen = false;
+            rollUpgradeCards();
         } else {
             //avoids blurring when pause menu not open
             if (blurredSnapshot != null) {
                 blurredSnapshot.flush();
                 blurredSnapshot = null;
             }
+        }
+        this.repaint();
+    }
+
+    private void rollUpgradeCards() {
+        Random random = new Random();
+        for (int i = 0; i < 3; i++) {
+            int roll = random.nextInt(100) + 1;
+
+            //percentage based rarity rolling
+            if (roll <= 50) {
+                cardRarities[i] = 0; //50%
+            } else if (roll <= 75) {
+                cardRarities[i] = 1; //25%
+            } else if (roll <= 90) {
+                cardRarities[i] = 2; //15%
+            } else if (roll <= 98) {
+                cardRarities[i] = 3; //8%
+            } else {
+                cardRarities[i] = 4; //2%
+            }
+            cardOptions[i] = random.nextInt(5); //number of card upgrade types
         }
     }
 
@@ -61,439 +96,184 @@ public class UpgradeMenu extends GameObject {
             g2d.fillRect(0, 0, this.getWidth(), this.getHeight());
         }
 
-        for (int i = 0; i < 3; i++) {
-            Random random = new Random();
+        g2d.setFont(new Font("Consolas", Font.BOLD, 50));
+        g2d.setColor(Color.WHITE);
+        g2d.drawString("SELECT AN UPGRADE", this.getWidth() / 2 - 230, 150);
 
-            int rarityLevel = random.nextInt(5); //change to percentage chance later
-            int optionNum = random.nextInt(4);
+        int cardY = this.getHeight() / 2;
+        //for spacing between cards
+        int centerX = this.getWidth() / 2;
+        int gap = 400;
 
-            switch (rarityLevel) {
-                case 0:
-                    switch (optionNum) {
-                        case 0:
-                            drawCommonUpgradeCard(g2d, 100, 100, GameMouseInput.mouseX, GameMouseInput.mouseY, 0);
-                            break;
-                        case 1:
-                            drawCommonUpgradeCard(g2d, 100, 100, GameMouseInput.mouseX, GameMouseInput.mouseY, 1);
-                            break;
-                        case 2:
-                            drawCommonUpgradeCard(g2d, 100, 100, GameMouseInput.mouseX, GameMouseInput.mouseY, 2);
-                            break;
-                        case 3:
-                            drawCommonUpgradeCard(g2d, 100, 100, GameMouseInput.mouseX, GameMouseInput.mouseY, 3);
-                            break;
-                    }
-                    break;
-                case 1:
-                    switch (optionNum) {
-                        case 0:
-                            drawUncommonUpgradeCard(g2d, 100, 100, GameMouseInput.mouseX, GameMouseInput.mouseY, 0);
-                            break;
-                        case 1:
-                            drawUncommonUpgradeCard(g2d, 100, 100, GameMouseInput.mouseX, GameMouseInput.mouseY, 1);
-                            break;
-                        case 2:
-                            drawUncommonUpgradeCard(g2d, 100, 100, GameMouseInput.mouseX, GameMouseInput.mouseY, 2);
-                            break;
-                        case 3:
-                            drawUncommonUpgradeCard(g2d, 100, 100, GameMouseInput.mouseX, GameMouseInput.mouseY, 3);
-                            break;
-                    }
-                    break;
-                case 2:
-                    switch (optionNum) {
-                        case 0:
-                            drawRareUpgradeCard(g2d, 100, 100, GameMouseInput.mouseX, GameMouseInput.mouseY, 0);
-                            break;
-                        case 1:
-                            drawRareUpgradeCard(g2d, 100, 100, GameMouseInput.mouseX, GameMouseInput.mouseY, 1);
-                            break;
-                        case 2:
-                            drawRareUpgradeCard(g2d, 100, 100, GameMouseInput.mouseX, GameMouseInput.mouseY, 2);
-                            break;
-                        case 3:
-                            drawRareUpgradeCard(g2d, 100, 100, GameMouseInput.mouseX, GameMouseInput.mouseY, 3);
-                            break;
-                    }
-                    break;
-                case 3:
-                    switch (optionNum) {
-                        case 0:
-                            drawEpicUpgradeCard(g2d, 100, 100, GameMouseInput.mouseX, GameMouseInput.mouseY, 0);
-                            break;
-                        case 1:
-                            drawEpicUpgradeCard(g2d, 100, 100, GameMouseInput.mouseX, GameMouseInput.mouseY, 1);
-                            break;
-                        case 2:
-                            drawEpicUpgradeCard(g2d, 100, 100, GameMouseInput.mouseX, GameMouseInput.mouseY, 2);
-                            break;
-                        case 3:
-                            drawEpicUpgradeCard(g2d, 100, 100, GameMouseInput.mouseX, GameMouseInput.mouseY, 3);
-                            break;
-                    }
-                    break;
-                case 4:
-                    switch (optionNum) {
-                        case 0:
-                            drawLegendaryUpgradeCard(g2d, 100, 100, GameMouseInput.mouseX, GameMouseInput.mouseY, 0);
-                            break;
-                        case 1:
-                            drawLegendaryUpgradeCard(g2d, 100, 100, GameMouseInput.mouseX, GameMouseInput.mouseY, 1);
-                            break;
-                        case 2:
-                            drawLegendaryUpgradeCard(g2d, 100, 100, GameMouseInput.mouseX, GameMouseInput.mouseY, 2);
-                            break;
-                        case 3:
-                            drawLegendaryUpgradeCard(g2d, 100, 100, GameMouseInput.mouseX, GameMouseInput.mouseY, 3);
-                            break;
-                    }
-                    break;
+        for (int i = 0; i < 3; i++) { //displays 3 options (change this value and the other for loop in act() for more options)
+            int cardX = centerX + (i - 1) * gap; //for spacing between cards
+            int rarity = cardRarities[i];
+            int option = cardOptions[i];
+
+            switch (rarity) {
+                case 0: drawCommonUpgradeCard(g2d, cardX, cardY, GameMouseInput.mouseX, GameMouseInput.mouseY, option, rarity); break;
+                case 1: drawUncommonUpgradeCard(g2d, cardX, cardY, GameMouseInput.mouseX, GameMouseInput.mouseY, option, rarity); break;
+                case 2: drawRareUpgradeCard(g2d, cardX, cardY, GameMouseInput.mouseX, GameMouseInput.mouseY, option, rarity); break;
+                case 3: drawEpicUpgradeCard(g2d, cardX, cardY, GameMouseInput.mouseX, GameMouseInput.mouseY, option, rarity); break;
+                case 4: drawLegendaryUpgradeCard(g2d, cardX, cardY, GameMouseInput.mouseX, GameMouseInput.mouseY, option, rarity); break;
             }
+
         }
     }
 
-    public void drawCommonUpgradeCard(Graphics2D g2d, int x, int y, int mouseX, int mouseY, int cardOption) {
-        int buttonWidth = 200;
-        int buttonHeight = 1000;
+    private boolean drawCardFrame(Graphics2D g2d, int x, int y, int w, int h, int mouseX, int mouseY, Color bg, Color shadowLight, Color shadowDark) {
+        int cardLeft = x - w / 2;
+        int cardTop = y - h / 2;
+        boolean isHovered = mouseX >= cardLeft && mouseX <= cardLeft + w && mouseY >= cardTop && mouseY <= cardTop + h;
 
-        x = x - buttonWidth/2;
-        y = y - buttonHeight/2;
+        Color currentBg;
+        Color currentBorder;
+        Color currentLightShadow;
+        Color currentDarkShadow;
 
-        boolean isHovered = mouseX >= x && mouseX <= x + buttonWidth && mouseY >= y && mouseY <= y + buttonHeight;
-
-        //inner button
+        //makes card become darker when hovered
         if (isHovered) {
-            g2d.setColor(new Color(114, 119, 139)); //dark gray
+            currentBg = bg.darker();
+            currentBorder = Color.WHITE;
+            currentLightShadow = shadowLight;
+            currentDarkShadow = shadowDark;
         } else {
-            g2d.setColor(new Color(148, 148, 148)); //light gray
-        }
-        g2d.fillRect(x, y, buttonWidth, buttonHeight);
-
-        //outer border
-        if (isHovered) {
-            g2d.setColor(Color.WHITE); //white
-        } else {
-            g2d.setColor(Color.BLACK); //black
+            currentBg = bg;
+            currentBorder = new Color(50, 50, 50);
+            currentLightShadow = Color.WHITE;
+            currentDarkShadow = new Color(85, 85, 85);
         }
 
-        g2d.fillRect(x, y, buttonWidth, 2); //top line
-        g2d.fillRect(x, y + buttonHeight - 2, buttonWidth, 2); //bottom line
-        g2d.fillRect(x, y, 2, buttonHeight); //left line
-        g2d.fillRect(x + buttonWidth - 2, y, 2, buttonHeight); //right line
+        //draw card background
+        g2d.setColor(currentBg);
+        g2d.fillRect(cardLeft, cardTop, w, h);
 
-        int thickness = 4; //thickness of shadows
-        //shadows
-        if (isHovered) {
-            //top and left shadows
-            g2d.setColor(new Color(171, 178, 209));
-            g2d.fillRect(x + 2, y + 2, buttonWidth - 4, thickness);
-            g2d.fillRect(x + 2, y + 2, thickness, buttonHeight - 4);
+        int borderSize = 6;
+        int shadowSize = 4;
 
-            //bottom and right shadows
-            g2d.setColor(new Color(57, 59, 70));
-            g2d.fillRect(x + 2, y + buttonHeight - 2 - thickness, buttonWidth - 4, thickness);
-            g2d.fillRect(x + buttonWidth - 2 - thickness, y + 2, thickness, buttonHeight - 4);
-        } else {
-            //top and left shadows
-            g2d.setColor(new Color(255, 255, 255));
-            g2d.fillRect(x + 2, y + 2, buttonWidth - 4, thickness);
-            g2d.fillRect(x + 2, y + 2, thickness, buttonHeight - 4);
+        //draws light and dark shadows
+        g2d.setStroke(new BasicStroke(1));
+        g2d.setColor(currentLightShadow);
+        g2d.fillRect(cardLeft + borderSize, cardTop + borderSize, w - (borderSize * 2), shadowSize);
+        g2d.fillRect(cardLeft + borderSize, cardTop + borderSize, shadowSize, h - (borderSize * 2));
+        g2d.setColor(currentDarkShadow);
+        g2d.fillRect(cardLeft + borderSize, cardTop + h - borderSize - shadowSize, w - (borderSize * 2), shadowSize);
+        g2d.fillRect(cardLeft + w - borderSize - shadowSize, cardTop + borderSize, shadowSize, h - (borderSize * 2));
 
-            //right and bottom shadows
-            g2d.setColor(new Color(85, 85, 85));
-            g2d.fillRect(x + 2, y + buttonHeight - 2 - thickness, buttonWidth - 4, thickness);
-            g2d.fillRect(x + buttonWidth - 2 - thickness, y + 2, thickness, buttonHeight - 4);
-        }
+        //draws border
+        g2d.setColor(currentBorder);
+        g2d.setStroke(new BasicStroke(borderSize)); //stroke is used for border size
+        g2d.drawRect(cardLeft + borderSize/2, cardTop + borderSize/2, w - borderSize, h - borderSize);
+        g2d.setStroke(new BasicStroke(1)); //reset border size so stroke can be used for other gui
 
-        //exits game if exit button is clicked
-        if (isHovered && GameMouseInput.isMouseLeftClickPressed) {
-            game.closeUpgradeMenu();
-        }
-
-        //button text centering and creation
-        String text = "Option 1";
-        g2d.setFont(font);
-        g2d.setColor(new Color(50, 50, 50));
-        FontMetrics metrics = g2d.getFontMetrics(font);
-        int textX = x + (buttonWidth - metrics.stringWidth(text)) / 2;
-        int textY = y + ((buttonHeight - metrics.getHeight()) / 2) + metrics.getAscent() + 4;
-        g2d.drawString(text, textX, textY);
+        return isHovered;
     }
 
-    public void drawUncommonUpgradeCard(Graphics2D g2d, int x, int y, int mouseX, int mouseY, int cardOption) {
-        int buttonWidth = 150;
-        int buttonHeight = 50;
-
-        x = x - buttonWidth/2;
-        y = y - buttonHeight/2;
-
-        boolean isHovered = mouseX >= x && mouseX <= x + buttonWidth && mouseY >= y && mouseY <= y + buttonHeight;
-
-        //inner button
-        if (isHovered) {
-            g2d.setColor(new Color(114, 119, 139)); //dark gray
-        } else {
-            g2d.setColor(new Color(148, 148, 148)); //light gray
-        }
-        g2d.fillRect(x, y, buttonWidth, buttonHeight);
-
-        //outer border
-        if (isHovered) {
-            g2d.setColor(Color.WHITE); //white
-        } else {
-            g2d.setColor(Color.BLACK); //black
-        }
-
-        g2d.fillRect(x, y, buttonWidth, 2); //top line
-        g2d.fillRect(x, y + buttonHeight - 2, buttonWidth, 2); //bottom line
-        g2d.fillRect(x, y, 2, buttonHeight); //left line
-        g2d.fillRect(x + buttonWidth - 2, y, 2, buttonHeight); //right line
-
-        int thickness = 4; //thickness of shadows
-        //shadows
-        if (isHovered) {
-            //top and left shadows
-            g2d.setColor(new Color(171, 178, 209));
-            g2d.fillRect(x + 2, y + 2, buttonWidth - 4, thickness);
-            g2d.fillRect(x + 2, y + 2, thickness, buttonHeight - 4);
-
-            //bottom and right shadows
-            g2d.setColor(new Color(57, 59, 70));
-            g2d.fillRect(x + 2, y + buttonHeight - 2 - thickness, buttonWidth - 4, thickness);
-            g2d.fillRect(x + buttonWidth - 2 - thickness, y + 2, thickness, buttonHeight - 4);
-        } else {
-            //top and left shadows
-            g2d.setColor(new Color(255, 255, 255));
-            g2d.fillRect(x + 2, y + 2, buttonWidth - 4, thickness);
-            g2d.fillRect(x + 2, y + 2, thickness, buttonHeight - 4);
-
-            //right and bottom shadows
-            g2d.setColor(new Color(85, 85, 85));
-            g2d.fillRect(x + 2, y + buttonHeight - 2 - thickness, buttonWidth - 4, thickness);
-            g2d.fillRect(x + buttonWidth - 2 - thickness, y + 2, thickness, buttonHeight - 4);
-        }
-
-        //unpauses game when button is clicked
-        if (isHovered && GameMouseInput.isMouseLeftClickPressed) {
-            game.closeUpgradeMenu();
-        }
-
-        //button text centering and creation
-        String text = "Option 2";
+    private void drawCardText(Graphics2D g2d, int x, int y, int h, String rarityText, int option, int rarity) {
         g2d.setFont(font);
-        g2d.setColor(new Color(50, 50, 50));
-        FontMetrics metrics = g2d.getFontMetrics(font);
-        int textX = x + (buttonWidth - metrics.stringWidth(text)) / 2;
-        int textY = y + ((buttonHeight - metrics.getHeight()) / 2) + metrics.getAscent() + 4;
-        g2d.drawString(text, textX, textY);
+        g2d.setColor(Color.WHITE);
+        FontMetrics fm = g2d.getFontMetrics(font);
+
+        //header
+        g2d.drawString(rarityText, x - fm.stringWidth(rarityText) / 2, (y - h / 2) + 50);
+
+        //upgrade options text
+        g2d.setFont(new Font("Consolas", Font.PLAIN, 16));
+        String text = switch (option) {
+            case 0 -> "More Ammo";
+            case 1 -> "More Bullet Speed & Range";
+            case 2 -> "More Player Speed";
+            case 3 -> "More Max Health";
+            case 4 -> "More XP";
+            default -> "Error in options text"; //if the option generated is invalid, it will output error message
+        };
+
+        int percentageIncrease = 0;
+
+        switch (rarity) { //determines the percentage increase of the player/weapon attribute based on the rarity of the card
+            case 0: percentageIncrease = 5; break;
+            case 1: percentageIncrease = 10; break;
+            case 2: percentageIncrease = 20; break;
+            case 3: percentageIncrease = 40; break;
+            case 4: percentageIncrease = 67; break;
+        }
+
+        String description = "+" + percentageIncrease + "% " + text;
+        g2d.drawString(description, x - g2d.getFontMetrics().stringWidth(description) / 2, y);
     }
 
-    public void drawRareUpgradeCard(Graphics2D g2d, int x, int y, int mouseX, int mouseY, int cardOption) {
-        int buttonWidth = 200;
-        int buttonHeight = 1000;
-
-        x = x - buttonWidth/2;
-        y = y - buttonHeight/2;
-
-        boolean isHovered = mouseX >= x && mouseX <= x + buttonWidth && mouseY >= y && mouseY <= y + buttonHeight;
-
-        //inner button
-        if (isHovered) {
-            g2d.setColor(new Color(114, 119, 139)); //dark gray
-        } else {
-            g2d.setColor(new Color(148, 148, 148)); //light gray
-        }
-        g2d.fillRect(x, y, buttonWidth, buttonHeight);
-
-        //outer border
-        if (isHovered) {
-            g2d.setColor(Color.WHITE); //white
-        } else {
-            g2d.setColor(Color.BLACK); //black
+    private void applyUpgrade(int rarity, int option) {
+        double multiplier = 1.0;
+        switch (rarity) {
+            case 0: multiplier = 1.05; System.out.println("Player selected a common upgrade"); break;
+            case 1: multiplier = 1.10; System.out.println("Player selected a uncommon upgrade"); break;
+            case 2: multiplier = 1.20; System.out.println("Player selected a rare upgrade"); break;
+            case 3: multiplier = 1.40; System.out.println("Player selected a epic upgrade"); break;
+            case 4: multiplier = 1.67; System.out.println("Player selected a legendary upgrade"); break;
         }
 
-        g2d.fillRect(x, y, buttonWidth, 2); //top line
-        g2d.fillRect(x, y + buttonHeight - 2, buttonWidth, 2); //bottom line
-        g2d.fillRect(x, y, 2, buttonHeight); //left line
-        g2d.fillRect(x + buttonWidth - 2, y, 2, buttonHeight); //right line
-
-        int thickness = 4; //thickness of shadows
-        //shadows
-        if (isHovered) {
-            //top and left shadows
-            g2d.setColor(new Color(171, 178, 209));
-            g2d.fillRect(x + 2, y + 2, buttonWidth - 4, thickness);
-            g2d.fillRect(x + 2, y + 2, thickness, buttonHeight - 4);
-
-            //bottom and right shadows
-            g2d.setColor(new Color(57, 59, 70));
-            g2d.fillRect(x + 2, y + buttonHeight - 2 - thickness, buttonWidth - 4, thickness);
-            g2d.fillRect(x + buttonWidth - 2 - thickness, y + 2, thickness, buttonHeight - 4);
-        } else {
-            //top and left shadows
-            g2d.setColor(new Color(255, 255, 255));
-            g2d.fillRect(x + 2, y + 2, buttonWidth - 4, thickness);
-            g2d.fillRect(x + 2, y + 2, thickness, buttonHeight - 4);
-
-            //right and bottom shadows
-            g2d.setColor(new Color(85, 85, 85));
-            g2d.fillRect(x + 2, y + buttonHeight - 2 - thickness, buttonWidth - 4, thickness);
-            g2d.fillRect(x + buttonWidth - 2 - thickness, y + 2, thickness, buttonHeight - 4);
+        switch (option) {
+            case 0: player.maxAmmo = (int)((player.maxAmmo * multiplier) + 0.5); break; //rounds up
+            case 1: player.bulletSpeed = (int)((player.bulletSpeed * multiplier) + 0.5); break;
+            case 2: player.playerSpeed = (int)((player.playerSpeed * multiplier) + 0.5); break;
+            case 3: player.playerMaxHealth = (int)((player.playerMaxHealth * multiplier) + 0.5); break;
+            case 4: game.enemyDroppedXp = game.enemyDroppedXp*multiplier; break;
         }
-
-        //exits game if exit button is clicked
-        if (isHovered && GameMouseInput.isMouseLeftClickPressed) {
-            game.closeUpgradeMenu();
-        }
-
-        //button text centering and creation
-        String text = "Option 1";
-        g2d.setFont(font);
-        g2d.setColor(new Color(50, 50, 50));
-        FontMetrics metrics = g2d.getFontMetrics(font);
-        int textX = x + (buttonWidth - metrics.stringWidth(text)) / 2;
-        int textY = y + ((buttonHeight - metrics.getHeight()) / 2) + metrics.getAscent() + 4;
-        g2d.drawString(text, textX, textY);
+        player.playerCurrentHealth = player.playerMaxHealth; //heals player
     }
 
-    public void drawEpicUpgradeCard(Graphics2D g2d, int x, int y, int mouseX, int mouseY, int cardOption) {
-        int buttonWidth = 200;
-        int buttonHeight = 1000;
-
-        x = x - buttonWidth/2;
-        y = y - buttonHeight/2;
-
-        boolean isHovered = mouseX >= x && mouseX <= x + buttonWidth && mouseY >= y && mouseY <= y + buttonHeight;
-
-        //inner button
-        if (isHovered) {
-            g2d.setColor(new Color(114, 119, 139)); //dark gray
-        } else {
-            g2d.setColor(new Color(148, 148, 148)); //light gray
-        }
-        g2d.fillRect(x, y, buttonWidth, buttonHeight);
-
-        //outer border
-        if (isHovered) {
-            g2d.setColor(Color.WHITE); //white
-        } else {
-            g2d.setColor(Color.BLACK); //black
-        }
-
-        g2d.fillRect(x, y, buttonWidth, 2); //top line
-        g2d.fillRect(x, y + buttonHeight - 2, buttonWidth, 2); //bottom line
-        g2d.fillRect(x, y, 2, buttonHeight); //left line
-        g2d.fillRect(x + buttonWidth - 2, y, 2, buttonHeight); //right line
-
-        int thickness = 4; //thickness of shadows
-        //shadows
-        if (isHovered) {
-            //top and left shadows
-            g2d.setColor(new Color(171, 178, 209));
-            g2d.fillRect(x + 2, y + 2, buttonWidth - 4, thickness);
-            g2d.fillRect(x + 2, y + 2, thickness, buttonHeight - 4);
-
-            //bottom and right shadows
-            g2d.setColor(new Color(57, 59, 70));
-            g2d.fillRect(x + 2, y + buttonHeight - 2 - thickness, buttonWidth - 4, thickness);
-            g2d.fillRect(x + buttonWidth - 2 - thickness, y + 2, thickness, buttonHeight - 4);
-        } else {
-            //top and left shadows
-            g2d.setColor(new Color(255, 255, 255));
-            g2d.fillRect(x + 2, y + 2, buttonWidth - 4, thickness);
-            g2d.fillRect(x + 2, y + 2, thickness, buttonHeight - 4);
-
-            //right and bottom shadows
-            g2d.setColor(new Color(85, 85, 85));
-            g2d.fillRect(x + 2, y + buttonHeight - 2 - thickness, buttonWidth - 4, thickness);
-            g2d.fillRect(x + buttonWidth - 2 - thickness, y + 2, thickness, buttonHeight - 4);
-        }
-
-        //exits game if exit button is clicked
-        if (isHovered && GameMouseInput.isMouseLeftClickPressed) {
-            game.closeUpgradeMenu();
-        }
-
-        //button text centering and creation
-        String text = "Option 1";
-        g2d.setFont(font);
-        g2d.setColor(new Color(50, 50, 50));
-        FontMetrics metrics = g2d.getFontMetrics(font);
-        int textX = x + (buttonWidth - metrics.stringWidth(text)) / 2;
-        int textY = y + ((buttonHeight - metrics.getHeight()) / 2) + metrics.getAscent() + 4;
-        g2d.drawString(text, textX, textY);
+    public void drawCommonUpgradeCard(Graphics2D g2d, int x, int y, int mouseX, int mouseY, int cardOption, int rarity) {
+        //calls method that draws the card frame and checks if the player mouse is in the frame
+        drawCardFrame(g2d, x, y, cardWidth, cardHeight, mouseX, mouseY, new Color(148, 148, 148), new Color(171, 178, 209), new Color(57, 59, 70));
+        drawCardText(g2d, x, y, cardHeight, "Common", cardOption, rarity);
     }
 
-    public void drawLegendaryUpgradeCard(Graphics2D g2d, int x, int y, int mouseX, int mouseY, int cardOption) {
-        int buttonWidth = 200;
-        int buttonHeight = 1000;
+    public void drawUncommonUpgradeCard(Graphics2D g2d, int x, int y, int mouseX, int mouseY, int cardOption, int rarity) {
+        drawCardFrame(g2d, x, y, cardWidth, cardHeight, mouseX, mouseY, new Color(119, 179, 119), new Color(159, 219, 159), new Color(39, 99, 39));
+        drawCardText(g2d, x, y, cardHeight, "Uncommon", cardOption, rarity);
+    }
 
-        x = x - buttonWidth/2;
-        y = y - buttonHeight/2;
+    public void drawRareUpgradeCard(Graphics2D g2d, int x, int y, int mouseX, int mouseY, int cardOption, int rarity) {
+        drawCardFrame(g2d, x, y, cardWidth, cardHeight, mouseX, mouseY, new Color(100, 149, 237), new Color(140, 189, 255), new Color(20, 69, 157));
+        drawCardText(g2d, x, y, cardHeight, "Rare", cardOption, rarity);
+    }
 
-        boolean isHovered = mouseX >= x && mouseX <= x + buttonWidth && mouseY >= y && mouseY <= y + buttonHeight;
+    public void drawEpicUpgradeCard(Graphics2D g2d, int x, int y, int mouseX, int mouseY, int cardOption, int rarity) {
+        drawCardFrame(g2d, x, y, cardWidth, cardHeight, mouseX, mouseY, new Color(160, 32, 240), new Color(200, 72, 255), new Color(80, 0, 160));
+        drawCardText(g2d, x, y, cardHeight, "Epic", cardOption, rarity);
+    }
 
-        //inner button
-        if (isHovered) {
-            g2d.setColor(new Color(114, 119, 139)); //dark gray
-        } else {
-            g2d.setColor(new Color(148, 148, 148)); //light gray
-        }
-        g2d.fillRect(x, y, buttonWidth, buttonHeight);
-
-        //outer border
-        if (isHovered) {
-            g2d.setColor(Color.WHITE); //white
-        } else {
-            g2d.setColor(Color.BLACK); //black
-        }
-
-        g2d.fillRect(x, y, buttonWidth, 2); //top line
-        g2d.fillRect(x, y + buttonHeight - 2, buttonWidth, 2); //bottom line
-        g2d.fillRect(x, y, 2, buttonHeight); //left line
-        g2d.fillRect(x + buttonWidth - 2, y, 2, buttonHeight); //right line
-
-        int thickness = 4; //thickness of shadows
-        //shadows
-        if (isHovered) {
-            //top and left shadows
-            g2d.setColor(new Color(171, 178, 209));
-            g2d.fillRect(x + 2, y + 2, buttonWidth - 4, thickness);
-            g2d.fillRect(x + 2, y + 2, thickness, buttonHeight - 4);
-
-            //bottom and right shadows
-            g2d.setColor(new Color(57, 59, 70));
-            g2d.fillRect(x + 2, y + buttonHeight - 2 - thickness, buttonWidth - 4, thickness);
-            g2d.fillRect(x + buttonWidth - 2 - thickness, y + 2, thickness, buttonHeight - 4);
-        } else {
-            //top and left shadows
-            g2d.setColor(new Color(255, 255, 255));
-            g2d.fillRect(x + 2, y + 2, buttonWidth - 4, thickness);
-            g2d.fillRect(x + 2, y + 2, thickness, buttonHeight - 4);
-
-            //right and bottom shadows
-            g2d.setColor(new Color(85, 85, 85));
-            g2d.fillRect(x + 2, y + buttonHeight - 2 - thickness, buttonWidth - 4, thickness);
-            g2d.fillRect(x + buttonWidth - 2 - thickness, y + 2, thickness, buttonHeight - 4);
-        }
-
-        //exits game if exit button is clicked
-        if (isHovered && GameMouseInput.isMouseLeftClickPressed) {
-            game.closeUpgradeMenu();
-        }
-
-        //button text centering and creation
-        String text = "Option 1";
-        g2d.setFont(font);
-        g2d.setColor(new Color(50, 50, 50));
-        FontMetrics metrics = g2d.getFontMetrics(font);
-        int textX = x + (buttonWidth - metrics.stringWidth(text)) / 2;
-        int textY = y + ((buttonHeight - metrics.getHeight()) / 2) + metrics.getAscent() + 4;
-        g2d.drawString(text, textX, textY);
+    public void drawLegendaryUpgradeCard(Graphics2D g2d, int x, int y, int mouseX, int mouseY, int cardOption, int rarity) {
+        drawCardFrame(g2d, x, y, cardWidth, cardHeight, mouseX, mouseY, new Color(218, 165, 32), new Color(255, 205, 72), new Color(138, 85, 0));
+        drawCardText(g2d, x, y, cardHeight, "Legendary", cardOption, rarity);
     }
 
     @Override
     public void act() {
+        if (!isVisible) return;
+        //prevents the immediate choosing of an option if the player holds down left-click on the location of a card
+        if (!GameMouseInput.isMouseLeftClickPressed) {
+            hasMouseBeenReleasedSinceOpen = true;
+        }
+        if (hasMouseBeenReleasedSinceOpen && GameMouseInput.isMouseLeftClickPressed) {
+            int cardY = this.getHeight() / 2;
+            int centerX = this.getWidth() / 2;
+            int gap = 400; //for spacing between cards
+            int mouseX = GameMouseInput.mouseX;
+            int mouseY = GameMouseInput.mouseY;
+
+            for (int i = 0; i < 3; i++) { //checks for all 3 cards
+                int cardX = centerX + (i - 1) * gap; //for spacing
+                int cardLeft = cardX - cardWidth / 2;
+                int cardTop = cardY - cardHeight / 2;
+
+                if (mouseX >= cardLeft && mouseX <= cardLeft + cardWidth && mouseY >= cardTop && mouseY <= cardTop + cardHeight) {
+                    applyUpgrade(cardRarities[i], cardOptions[i]); //calls method that applies the chosen upgrade to the card
+                    game.closeUpgradeMenu();
+                    return;
+                }
+            }
+        }
         this.repaint(); //do not remove, very important
     }
 
@@ -512,9 +292,19 @@ public class UpgradeMenu extends GameObject {
         //hides pause menu overlay to prevent blurring of pause menu
         boolean oldVisibility = this.isVisible;
         this.isVisible = false;
+        boolean oldDebugVisibility = false;
+        boolean hasDebugMenu = (debugHUD != null);
+        if (hasDebugMenu) {
+            oldDebugVisibility = debugHUD.isVisible();
+            debugHUD.setVisible(false); // Hide it from the blur snapshot
+        }
 
         //draws the parent frame container components to the target texture
         targetCanvas.paint(containerGraphics);
+
+        if (hasDebugMenu) {
+            debugHUD.setVisible(oldDebugVisibility);
+        }
 
         this.isVisible = oldVisibility; //unhides pause menu overlay
         containerGraphics.dispose();

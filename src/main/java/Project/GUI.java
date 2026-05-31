@@ -92,13 +92,13 @@ public class GUI extends GameObject {
         }
     }
 
-    public void drawXPBar(Graphics2D g2d, int x, int y, int currentPlayerXP, int playerXPBarMaxXP) {
+    public void drawXPBar(Graphics2D g2d, int x, int y, double currentPlayerXP, int playerXPBarMaxXP) {
         //xp bar dimensions
         int barWidth = this.getWidth() - (2 * x);
         int barHeight = 35; //thickness of bar
 
         //calculates the width of the xp bar
-        double xpPercentage = (double) currentPlayerXP / playerXPBarMaxXP; //casts to double to avoid rounding to 0
+        double xpPercentage = currentPlayerXP / (double)playerXPBarMaxXP; //casts to double to avoid rounding to 0
         xpPercentage = Math.max(0.0, Math.min(1.0, xpPercentage)); //makes sure the value is between 0 and 1
         int fillWidth = (int) (barWidth * xpPercentage);
 
