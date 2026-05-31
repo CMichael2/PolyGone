@@ -15,10 +15,10 @@ public class Player extends GameObject{
     public int playerMaxHealth = 100;
     public int playerCurrentHealth = playerMaxHealth;
 
-    public int playerLevel = 0;
+    public int playerLevel = 49;
     public int currentPlayerXp = 0;
     public int totalPlayerXp = 0;
-    public int playerXPBarMaxXP = 10; //base xp level up requirement
+    public int playerXPBarMaxXP = 10 + (int)((Math.pow(playerLevel, 1.8)/4.0)+0.5);; //base xp level up requirement
     public final int PLAYER_XP_BAR_MAX_XP_BASE = 10;
 
     public Player(PolyGone mainGame) { //sets attributes for player game object
@@ -43,9 +43,12 @@ public class Player extends GameObject{
 
     public void updatePlayerLevel(PolyGone game) {
         playerLevel += 1;
+        if (playerLevel < 50) {
+            game.openUpgradeMenu();
+        }
         currentPlayerXp = 0; //reset xp
         this.playerXPBarMaxXP = 10 + (int)((Math.pow(playerLevel, 1.8)/4.0)+0.5); //calculates new xp level up requirements
-        game.enemySpawnRate = 1000 - (int)(playerLevel*10);
+        game.enemySpawnRate = 3000 - (int)(playerLevel*10);
     }
 
     //movement for player

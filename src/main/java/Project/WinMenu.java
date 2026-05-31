@@ -6,7 +6,7 @@ import java.awt.image.BufferedImage; //off-screen canvas
 import java.awt.image.ConvolveOp; //used to scale up and down images
 import java.awt.image.Kernel; //a matrix used for math
 
-public class PauseMenu extends GameObject {
+public class WinMenu extends GameObject {
 
     Player player; //reference to object
     PolyGone game;
@@ -17,13 +17,13 @@ public class PauseMenu extends GameObject {
     private Font font = new Font("Consolas", Font.BOLD, 30);
     private boolean isVisible = false;
 
-    public PauseMenu(PolyGone game, Player player) {
+    public WinMenu(PolyGone game, Player player) {
         this.player = player;
         this.game = game;
         this.setBounds(0, 0, game.getWidth(), game.getHeight()); //sets gui size and location
     }
 
-    public void setPauseMenuVisible(boolean visible) {
+    public void setWinMenuVisible(boolean visible) {
         this.isVisible = visible;
         if (visible) {
             this.needsBlurRefresh = true; //tells game to blur background
@@ -42,6 +42,8 @@ public class PauseMenu extends GameObject {
 
         Graphics2D g2d = (Graphics2D) g; //cast to 2d graphics for antialiasing
         g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        g2d.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
+        g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
 
         //gets to be blurred background
         if (needsBlurRefresh || blurredSnapshot == null) {
@@ -60,9 +62,26 @@ public class PauseMenu extends GameObject {
             g2d.fillRect(0, 0, this.getWidth(), this.getHeight());
         }
 
+        drawWinText(g2d);
+
         drawExitButton(g2d, this.getWidth()/2, 700, GameMouseInput.mouseX, GameMouseInput.mouseY);
 
-        drawResumeButton(g2d, this.getWidth()/2, 500, GameMouseInput.mouseX, GameMouseInput.mouseY);
+        drawPlayAgainButton(g2d, this.getWidth()/2, 625, GameMouseInput.mouseX, GameMouseInput.mouseY);
+    }
+
+    public void drawWinText(Graphics2D g2d) {
+        String text = "YOU WIN";
+
+        g2d.setFont(new Font("OCR A Extended", Font.BOLD, 80));
+        g2d.setColor(Color.WHITE);
+
+        FontMetrics metrics = g2d.getFontMetrics();
+        int textWidth = metrics.stringWidth(text);
+
+        int x = (this.getWidth() - textWidth) / 2;
+        int y = this.getHeight()/2;
+
+        g2d.drawString(text, x, y);
     }
 
     public void drawExitButton(Graphics2D g2d, int x, int y, int mouseX, int mouseY) {
@@ -133,8 +152,8 @@ public class PauseMenu extends GameObject {
         g2d.drawString(text, textX, textY);
     }
 
-    public void drawResumeButton(Graphics2D g2d, int x, int y, int mouseX, int mouseY) {
-        int buttonWidth = 150;
+    public void drawPlayAgainButton(Graphics2D g2d, int x, int y, int mouseX, int mouseY) {
+        int buttonWidth = 250;
         int buttonHeight = 50;
 
         x = x - buttonWidth/2;
@@ -188,11 +207,11 @@ public class PauseMenu extends GameObject {
 
         //unpauses game when button is clicked
         if (isHovered && GameMouseInput.isMouseLeftClickPressed) {
-            game.unpauseGame();
+            game.gameReset();
         }
 
         //button text centering and creation
-        String text = "Resume";
+        String text = "Play Again";
         g2d.setFont(font);
         g2d.setColor(new Color(50, 50, 50));
         FontMetrics metrics = g2d.getFontMetrics(font);

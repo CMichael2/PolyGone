@@ -14,12 +14,21 @@ public class PolyGone extends Game {
 
     //gui and hud variables/objects
     private GUI gameUI; //object for referencing gui class
+
     private PauseMenu pauseMenu;
-    private boolean showPauseMenu =  false;
+    public boolean showPauseMenu = false;
     private boolean pauseMenuKeyWasPressedLastFrame = false;
+    private long pauseMenuOpenTime = 0;
+
     private DebugHUD debugHUD;
     private boolean showDebugHUD = false;
     private boolean debugKeyWasPressedLastFrame = false;
+
+    private UpgradeMenu upgradeMenu;
+    private boolean showUpgradeMenu;
+    private long upgradeMenuOpenTime = 0;
+
+    public long totalTimeSpentPaused = 0;
 
     private ArrayList<Bullets> bulletsList = new ArrayList<>(); //creates arraylist of bullets
 
@@ -28,8 +37,12 @@ public class PolyGone extends Game {
     private ArrayList<Enemies> enemiesList = new ArrayList<>();
     private double enemySpeed = Player.playerSpeed*0.3; //used to determine enemy speed, 50% of player speed
     private long lastEnemySpawnTime = 0;
-    public long enemySpawnRate = 2000; //used to determine the enemy spawn rate in milliseconds
+    public long enemySpawnRate = 3000; //used to determine the enemy spawn rate in milliseconds
     private boolean isFirstEnemy = true; //used to begin spawning of enemies
+
+    private WinMenu winMenu;
+    public boolean showWinMenu = false;
+    public boolean isGameWon = false;
 
     private final Set<Integer> activeKeys = new HashSet<>(); //arraylist to store unlimited active keys
 
@@ -60,6 +73,7 @@ public class PolyGone extends Game {
             @Override
             public void windowLostFocus(java.awt.event.WindowEvent e) {
                 isGameFocused = false;
+                pauseGame(true);
                 //disables keys when not in focus to prevent player movement
                 activeKeys.clear();
             }
@@ -85,38 +99,60 @@ public class PolyGone extends Game {
         debugHUD = new DebugHUD(this, player);
         add(debugHUD);
 
+        upgradeMenu = new UpgradeMenu(this, player);
+        add(upgradeMenu);
+
         pauseMenu = new PauseMenu(this, player);
         add(pauseMenu);
 
-        this.getContentPane().setComponentZOrder(pauseMenu, 0); //moves hud to top layer of screen
-        this.getContentPane().setComponentZOrder(debugHUD, 1); //moves hud to top layer of screen
-        this.getContentPane().setComponentZOrder(gameUI, 2); //moves gui to 2nd top layer of screen
+        winMenu = new WinMenu(this, player);
+        add(winMenu);
+
+        //moves game objects to front or back
+        this.getContentPane().setComponentZOrder(winMenu, 0);
+        this.getContentPane().setComponentZOrder(pauseMenu, 1);
+        this.getContentPane().setComponentZOrder(upgradeMenu, 2);
+        this.getContentPane().setComponentZOrder(debugHUD, 3);
+        this.getContentPane().setComponentZOrder(gameUI, 4);
+        this.getContentPane().setComponentZOrder(player, 5);
     }
 
     @Override
     public void act() {
-
+        //only for opening pause menu when escape key is pressed
         openPauseMenu();
 
+        gameWon();
+
+        if (isGameWon) {
+            return;
+        }
+
+        //checks if pause menu is open
         if (showPauseMenu) {
             if (pauseMenu != null) {
                 pauseMenu.act();
             }
-            //resets mouse inputs during pause
+            GameMouseInput.reset(); //resets mouse inputs during pause
+            return;
+        }
+
+        if (showWinMenu) {
+            if (winMenu != null) {
+                winMenu.act();
+            }
+            GameMouseInput.reset(); //resets mouse inputs during pause
+            return;
+        }
+
+        if (showUpgradeMenu) {
+            if (upgradeMenu != null) {
+                upgradeMenu.act();
+            }
             GameMouseInput.reset();
             return;
         }
 
-        if (!isGameFocused) {
-            //reset mouse inputs during pause
-            GameMouseInput.reset();
-            //opens pause menu
-            showPauseMenu = true;
-            if (pauseMenu != null) {
-                pauseMenu.setPauseMenuVisible(true);
-            }
-            return;
-        }
         //player interaction updates
         player.playerMovementUpdate(this); //calls player movement update method inside player class
         player.handlePlayerShooting(this, this.bulletsList); //calls player shooting method inside player class
@@ -132,6 +168,67 @@ public class PolyGone extends Game {
         enemyBehaviorUpdates();
 
         //resets inputs in mouse input class
+        GameMouseInput.reset();
+    }
+
+    private void pauseGame(boolean shouldPause) {
+        this.showPauseMenu = shouldPause;
+
+        if (pauseMenu != null) {
+            pauseMenu.setPauseMenuVisible(shouldPause);
+        }
+        if (shouldPause) {
+            this.pauseMenuOpenTime = System.currentTimeMillis();
+        } else {
+            long timeSpentPaused = System.currentTimeMillis() - pauseMenuOpenTime;
+
+            for (Bullets b : bulletsList) {
+                b.bulletTimeOfFire += timeSpentPaused;
+            }
+            GameMouseInput.isMouseLeftClickPressed = false;
+        }
+        GameMouseInput.reset();
+    }
+
+    //unpauses game
+    public void unpauseGame() {
+        this.showPauseMenu = false;
+
+        long timeSpentPaused = System.currentTimeMillis() - pauseMenuOpenTime;
+
+        for (Bullets b : bulletsList) {
+            b.bulletTimeOfFire += timeSpentPaused;
+        }
+
+        if (pauseMenu != null) {
+            pauseMenu.setPauseMenuVisible(false);
+        }
+        GameMouseInput.isMouseLeftClickPressed = false;
+        GameMouseInput.reset();
+    }
+
+    public void openUpgradeMenu() {
+        this.showUpgradeMenu = true;
+        this.upgradeMenuOpenTime = System.currentTimeMillis();
+        if (upgradeMenu != null) {
+            upgradeMenu.setUpgradeMenuVisible(true);
+        }
+        GameMouseInput.reset();
+    }
+
+    public void closeUpgradeMenu() {
+        this.showUpgradeMenu = false;
+
+        long timeSpentInMenu = System.currentTimeMillis() - upgradeMenuOpenTime;
+
+        for (Bullets b : bulletsList) {
+            b.bulletTimeOfFire += timeSpentInMenu;
+        }
+
+        if (upgradeMenu != null) {
+            upgradeMenu.setUpgradeMenuVisible(false);
+        }
+        GameMouseInput.isMouseLeftClickPressed = false;
         GameMouseInput.reset();
     }
 
@@ -156,12 +253,7 @@ public class PolyGone extends Game {
         if (isKeyPressed(KeyEvent.VK_ESCAPE)) {
             //only toggles on first frame of being pressed
             if (!pauseMenuKeyWasPressedLastFrame) {
-                showPauseMenu = !showPauseMenu; //changes the state of debug hud to the opposite
-
-                if (pauseMenu != null) { //checks if the debug hud has been created
-                    pauseMenu.setPauseMenuVisible(showPauseMenu); //calls method to toggle the debug hud
-                }
-
+                pauseGame(!showPauseMenu);
                 pauseMenuKeyWasPressedLastFrame = true; //prevents the toggle from activating again until the key is released
             }
         } else {
@@ -211,7 +303,7 @@ public class PolyGone extends Game {
                 if (e.isDead()) {
                     remove(e);
                     enemiesList.remove(j);
-                    player.updatePlayerXP(1, this);
+                    player.updatePlayerXP(300, this);
                     this.repaint();
                 }
                 return true;
@@ -282,26 +374,15 @@ public class PolyGone extends Game {
                 int currentPlayerHealth = player.updateHealth(e.enemyDamage);
 
                 if (currentPlayerHealth <= 0) {
-                    triggerGameOver();
+                    System.out.println("Player died, resetting"); //console info
+                    gameReset();
+                    return;
                 }
 
                 enemiesList.remove(i);
                 i--;
             }
         }
-    }
-
-    private void triggerGameOver() {
-        System.out.println("Player died, resetting"); //console info
-
-        player.playerCurrentHealth = player.playerMaxHealth; //resets player health
-
-        //moves player back to middle of the screen
-        player.setX((this.getWidth() / 2) - (player.getWidth() / 2));
-        player.setY((this.getHeight() / 2) - (player.getHeight() / 2));
-        player.playerLevel = 0;
-        player.playerXPBarMaxXP = player.PLAYER_XP_BAR_MAX_XP_BASE;
-        player.currentPlayerXp = 0;
     }
 
     //ray casting to determine if bullets will collide with enemies
@@ -352,9 +433,56 @@ public class PolyGone extends Game {
         return false;
     }
 
-    //for debugging purposes
+    //for debug menu
     public int getEnemyCount() {
         return this.enemiesList.size();
+    }
+
+    public void gameWon() {
+        if (!isGameWon && player.playerLevel >= 50) {
+            isGameWon = true;
+            showWinMenu = true;
+            if (winMenu != null) {
+                winMenu.setWinMenuVisible(true);
+            }
+        }
+    }
+
+    public void gameReset() {
+        this.isGameWon = false;
+        this.showWinMenu = false;
+        if (winMenu != null) {
+            winMenu.setWinMenuVisible(false);
+        }
+
+        for (Enemies e : enemiesList) {
+            remove(e);
+        }
+        for (Bullets b : bulletsList) {
+            remove(b);
+        }
+
+        enemiesList.clear();
+        bulletsList.clear();
+
+        this.isFirstEnemy = true;
+        this.lastEnemySpawnTime = 0;
+
+        player.playerCurrentHealth = player.playerMaxHealth; //resets player health
+
+        //moves player back to middle of the screen
+        player.setX((this.getWidth() / 2) - (player.getWidth() / 2));
+        player.setY((this.getHeight() / 2) - (player.getHeight() / 2));
+        player.playerLevel = 0;
+        player.playerXPBarMaxXP = player.PLAYER_XP_BAR_MAX_XP_BASE;
+        player.currentPlayerXp = 0;
+        player.totalPlayerXp = 0;
+        player.currentAmmo = player.maxAmmo;
+
+        GameMouseInput.isMouseLeftClickPressed = false;
+        GameMouseInput.reset();
+
+        this.repaint();
     }
 
     //closes game if the escape key is pressed

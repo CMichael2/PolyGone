@@ -9,6 +9,7 @@ import javax.imageio.ImageIO;
 public class GUI extends GameObject {
 
     Player player; //reference to object
+    PolyGone game;
 
     private Font font = new Font("OCR A Extended", Font.BOLD, 30);
 
@@ -16,6 +17,7 @@ public class GUI extends GameObject {
 
     public GUI(PolyGone game, Player player) {
         this.player = player;
+        this.game = game;
         this.setBounds(0, 0, game.getWidth(), game.getHeight()); //sets gui size and location
 
         //loads heart image with a try and catch to avoid crashing
@@ -81,7 +83,7 @@ public class GUI extends GameObject {
         g2d.fillRect(x + 3, y + 3, barWidth - 6, barHeight - 6);
 
         //draws health bar
-        if (fillWidth > 6) { //only draws if the thickness is valid
+        if (fillWidth > 0) { //only draws if the thickness is valid
             g2d.setColor(new Color(200, 35, 45)); //dark red shadow bar
             g2d.fillRect(x + 3, y + 3, fillWidth - 6, barHeight - 6);
 
@@ -109,7 +111,7 @@ public class GUI extends GameObject {
         g2d.fillRect(x + 3, y + 3, barWidth - 6, barHeight - 6);
 
         //draws xp bar
-        if (fillWidth > 6) { //only draws if the thickness is valid
+        if (fillWidth > 0) { //only draws if the thickness is valid
             g2d.setColor(new Color(0, 170, 185)); //dark cyan shadow bar
             g2d.fillRect(x + 3, y + 3, fillWidth - 6, barHeight - 6);
 
@@ -137,7 +139,7 @@ public class GUI extends GameObject {
         g2d.fillRect(x + 3, y + 3, barWidth - 6, barHeight - 6);
 
         //draws ammo bar
-        if (fillWidth > 6) { //only draws if the thickness is valid
+        if (fillWidth > 0) { //only draws if the thickness is valid
             g2d.setColor(new Color(190, 160, 0)); //dark yellow shadow bar
             g2d.fillRect(x + 3, y + 3, fillWidth - 6, barHeight - 6);
 
@@ -168,7 +170,7 @@ public class GUI extends GameObject {
         g2d.fillRect(x + 3, y + 3, barWidth - 6, barHeight - 6);
 
         //draws ammo bar
-        if (fillWidth > 6) { //only draws if the thickness is valid
+        if (fillWidth > 0) { //only draws if the thickness is valid
             g2d.setColor(new Color(190, 160, 0)); //dark yellow shadow bar
             g2d.fillRect(x + 3, y + 3, fillWidth - 6, barHeight - 6);
 
@@ -178,20 +180,16 @@ public class GUI extends GameObject {
     }
 
     public void drawAmmoRegenCircle(Graphics2D g2d, int x, int y, long lastAmmoRegenTime, long ammoRegenCooldown, int diameter) {
-        if (player.currentAmmo == player.maxAmmo) {
-            return;
-        }
-
         double ammoRegenBarPercentage;
 
-        long timeElapsed = System.currentTimeMillis() - lastAmmoRegenTime;
+        if (player.currentAmmo == player.maxAmmo) {
+            ammoRegenBarPercentage = 0.0;
+        } else {
+            long timeElapsed = System.currentTimeMillis() - lastAmmoRegenTime;
 
-        //calculate percentage of completion
-        double progress = (double) timeElapsed / ammoRegenCooldown;
-        ammoRegenBarPercentage = Math.max(0.0, Math.min(1.0, progress)); //makes sure value is between 0 and 1
-
-        if (ammoRegenBarPercentage >= 1.0) {
-            return;
+            //calculate percentage of completion
+            double progress = (double) timeElapsed / ammoRegenCooldown;
+            ammoRegenBarPercentage = Math.max(0.0, Math.min(1.0, progress)); //makes sure value is between 0 and 1
         }
 
         int arcAngle = (int) (360 * ammoRegenBarPercentage);
@@ -206,7 +204,7 @@ public class GUI extends GameObject {
         g2d.fillOval(x + 3, y + 3, diameter - 6, diameter - 6);
 
         //draws ammo reload bar
-        if (arcAngle > 6) { //only draws if the thickness is valid
+        if (arcAngle > 0) { //only draws if the thickness is valid
             g2d.setColor(new Color(245, 215, 0)); //bright yellow
             g2d.fillArc(x + 3, y + 3, diameter - 6, diameter - 6, 90, -arcAngle);
         }
