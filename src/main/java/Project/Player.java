@@ -15,10 +15,11 @@ public class Player extends GameObject{
     public int playerMaxHealth = 100;
     public int playerCurrentHealth = playerMaxHealth;
 
-    public int playerLevel = 0; //starting player level
+    public int startingPlayerLevel = 49; //starting player level
+    public int playerLevel = startingPlayerLevel;
     public double currentPlayerXp = 0;
     public int totalPlayerXp = 0;
-    public int playerXPBarMaxXP = 10 + (int)((Math.pow(playerLevel, 1.8)/4.0)+0.5);; //base xp level up requirement
+    public int playerXPBarMaxXP = 10 + (int)((Math.pow(playerLevel, 1.8)/4.0)+0.5); //base xp level up requirement
     public final int PLAYER_XP_BAR_MAX_XP_BASE = 10;
 
     public Player(PolyGone mainGame) { //sets attributes for player game object
@@ -43,7 +44,7 @@ public class Player extends GameObject{
 
     public void updatePlayerLevel(PolyGone game) {
         playerLevel += 1;
-        if (playerLevel < 50) {
+        if (playerLevel != 50) {
             game.openUpgradeMenu();
             System.out.println("Player leveled up to " + playerLevel);
         }
@@ -176,7 +177,6 @@ public class Player extends GameObject{
         //calculate percentage of completion
         double progress = (double) timeElapsed / ammoRegenCooldown;
 
-        // Clamp the value between 0.0 and 1.0 just to be safe
         return Math.max(0.0, Math.min(1.0, progress));
     }
 }

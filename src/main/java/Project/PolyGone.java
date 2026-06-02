@@ -40,11 +40,16 @@ public class PolyGone extends Game {
     public int baseEnemySpawnRate = 2000;
     public int enemySpawnRate = 2000; //used to determine the enemy spawn rate in milliseconds
     private boolean isFirstEnemy = true; //used to begin spawning of enemies
-    public double enemyDroppedXp = 1.0;
+    public double enemyDroppedXp = 300.0;
 
     private WinMenu winMenu;
     public boolean showWinMenu = false;
     public boolean isGameWon = false;
+    public boolean firstWin = true; //makes sure that win screen only shows once
+
+    private MainMenu mainMenu;
+    public boolean showMainMenu = false;
+    public boolean isGameInitalStart = true;
 
     private final Set<Integer> activeKeys = new HashSet<>(); //arraylist to store unlimited active keys
 
@@ -75,9 +80,14 @@ public class PolyGone extends Game {
             @Override
             public void windowLostFocus(java.awt.event.WindowEvent e) {
                 isGameFocused = false;
-                pauseGame(true);
+                if (pauseMenu != null) {
+                    if (!pauseMenu.isPauseMenuVisible) {
+                        pauseGame(true);
+                    }
+                }
                 //disables keys when not in focus to prevent player movement
                 activeKeys.clear();
+                System.out.println("Game window is no longer focused");
             }
         });
 
@@ -89,49 +99,33 @@ public class PolyGone extends Game {
         this.addMouseListener(mouseHandler);
         this.addMouseWheelListener(mouseHandler);
 
-        //creates player game object
-        player = new Player(this);
-        add(player);
-
-        //creates gui game object
-        gameUI = new GUI(this, player);
-        add(gameUI);
-
-        //creates debug hud game object
-        debugHUD = new DebugHUD(this, player);
-        add(debugHUD);
-
-        upgradeMenu = new UpgradeMenu(this, player, debugHUD);
-        add(upgradeMenu);
-
-        pauseMenu = new PauseMenu(this, player);
-        add(pauseMenu);
-
-        winMenu = new WinMenu(this, player);
-        add(winMenu);
+        mainMenu = new MainMenu(this, player);
+        add(mainMenu);
 
         //moves game objects to front or back
-        this.getContentPane().setComponentZOrder(debugHUD, 0);
-        this.getContentPane().setComponentZOrder(winMenu, 1);
-        this.getContentPane().setComponentZOrder(pauseMenu, 2);
-        this.getContentPane().setComponentZOrder(upgradeMenu, 3);
-        this.getContentPane().setComponentZOrder(gameUI, 4);
-        this.getContentPane().setComponentZOrder(player, 5);
+        this.getContentPane().setComponentZOrder(mainMenu, 0);
+
+        openMainMenu();
+        this.isGameInitalStart = false;
     }
 
     @Override
     public void act() {
-        //only for opening pause menu when escape key is pressed
-        openPauseMenu();
+        if (showMainMenu) {
+            if (mainMenu != null) {
+                mainMenu.act();
+                return;
+            }
+        }
+
+        openPauseMenu(); //only for opening pause menu when escape key is pressed
 
         gameWon();
-
         if (isGameWon) {
             return;
         }
 
-        //checks if pause menu is open
-        if (showPauseMenu) {
+        if (showPauseMenu) { //checks if pause menu is open
             if (pauseMenu != null) {
                 pauseMenu.act();
             }
@@ -155,6 +149,10 @@ public class PolyGone extends Game {
             return;
         }
 
+        if (player == null) {
+            return;
+        }
+
         //player interaction updates
         player.playerMovementUpdate(this); //calls player movement update method inside player class
         player.handlePlayerShooting(this, this.bulletsList); //calls player shooting method inside player class
@@ -170,6 +168,71 @@ public class PolyGone extends Game {
         enemyBehaviorUpdates();
 
         //resets inputs in mouse input class
+        GameMouseInput.reset();
+    }
+
+    public void openMainMenu() {
+        this.showMainMenu = true;
+        if (mainMenu != null) {
+            mainMenu.setMainMenuVisible(true);
+        }
+        GameMouseInput.reset();
+        this.repaint();
+    }
+
+    public void closeMainMenu() {
+        this.showMainMenu = false;
+
+        if (mainMenu != null) {
+            mainMenu.setMainMenuVisible(false);
+        }
+
+        if (player == null && gameUI == null) {
+            // creates player game object
+            player = new Player(this);
+            add(player);
+
+            if (mainMenu != null) mainMenu.player = player;
+            if (pauseMenu != null) pauseMenu.player = player;
+            if (winMenu != null) winMenu.player = player;
+
+            // creates gui game object
+            gameUI = new GUI(this, player);
+            add(gameUI);
+
+            // Dynamically instantiate components that rely on the player
+            if (debugHUD == null) {
+                debugHUD = new DebugHUD(this, player);
+                add(debugHUD);
+            }
+            if (upgradeMenu == null) {
+                upgradeMenu = new UpgradeMenu(this, player, debugHUD);
+                add(upgradeMenu);
+            }
+            if (pauseMenu == null) {
+                pauseMenu = new PauseMenu(this, player);
+                add(pauseMenu);
+            }
+            if (winMenu == null) {
+                winMenu = new WinMenu(this, player);
+                add(winMenu);
+            }
+
+            // Apply strict z-ordering once components are loaded
+            this.getContentPane().setComponentZOrder(mainMenu, 0);
+            this.getContentPane().setComponentZOrder(debugHUD, 1);
+            this.getContentPane().setComponentZOrder(pauseMenu, 2);
+            this.getContentPane().setComponentZOrder(winMenu, 3);
+            this.getContentPane().setComponentZOrder(upgradeMenu, 4);
+            this.getContentPane().setComponentZOrder(gameUI, 5);
+            this.getContentPane().setComponentZOrder(player, 6);
+        } else {
+            // If they already exist (like resetting a match), just make sure they're visible
+            player.setVisible(true);
+            gameUI.setVisible(true);
+        }
+
+        GameMouseInput.isMouseLeftClickPressed = false;
         GameMouseInput.reset();
     }
 
@@ -452,8 +515,9 @@ public class PolyGone extends Game {
     }
 
     public void gameWon() {
-        if (!isGameWon && player.playerLevel >= 50) {
+        if (!isGameWon && player.playerLevel == 50 && firstWin) {
             isGameWon = true;
+            firstWin = false;
             showWinMenu = true;
             if (winMenu != null) {
                 winMenu.setWinMenuVisible(true);
@@ -487,8 +551,8 @@ public class PolyGone extends Game {
         //moves player back to middle of the screen
         player.setX((this.getWidth() / 2) - (player.getWidth() / 2));
         player.setY((this.getHeight() / 2) - (player.getHeight() / 2));
-        player.playerLevel = 0;
-        player.playerXPBarMaxXP = player.PLAYER_XP_BAR_MAX_XP_BASE;
+        player.playerLevel = player.startingPlayerLevel;
+        player.playerXPBarMaxXP = 10 + (int)((Math.pow(player.playerLevel, 1.8)/4.0)+0.5);;
         player.currentPlayerXp = 0;
         player.totalPlayerXp = 0;
         player.currentAmmo = player.maxAmmo;
@@ -501,12 +565,16 @@ public class PolyGone extends Game {
 
     //closes game if the escape key is pressed
     public void exitGame() {
-        System.exit(0);
+        System.out.println("Player quit game");
+        System.exit(67);
     }
 
     //main method
     public static void main(String[] args) {
         PolyGone game = new PolyGone();
+
+        ImageIcon icon = new ImageIcon("Assets/Polygon.png");
+        game.setIconImage(icon.getImage());
 
         //Removes the window elements
         game.setJMenuBar(null);

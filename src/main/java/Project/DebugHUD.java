@@ -25,6 +25,7 @@ public class DebugHUD extends GameObject {
 
     public void setDebugHUDVisible(boolean visible) {
         this.isVisible = visible;
+        System.out.println("Player opened debug menu");
     }
 
     @Override
@@ -54,7 +55,7 @@ public class DebugHUD extends GameObject {
 
         drawRightAlignedString(g2d, "Player xp level up requirements: " + player.playerXPBarMaxXP, screenRightEdge, getHeight()- 85, font);
 
-        drawRightAlignedString(g2d, "Current player xp: " + String.format("%.1f", (double)player.currentPlayerXp), screenRightEdge, getHeight()-100, font);
+        drawRightAlignedString(g2d, "Current player xp: " + String.format("%.2f", (double)player.currentPlayerXp), screenRightEdge, getHeight()-100, font);
 
         drawRightAlignedString(g2d, "Current ammo count: " + player.currentAmmo, screenRightEdge, getHeight()- 115, font);
 

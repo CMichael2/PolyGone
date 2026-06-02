@@ -179,14 +179,15 @@ public class UpgradeMenu extends GameObject {
 
         //upgrade options text
         g2d.setFont(new Font("Consolas", Font.PLAIN, 16));
-        String text = switch (option) {
-            case 0 -> "More Ammo";
-            case 1 -> "More Bullet Speed & Range";
-            case 2 -> "More Player Speed";
-            case 3 -> "More Max Health";
-            case 4 -> "More XP";
-            default -> "Error in options text"; //if the option generated is invalid, it will output error message
-        };
+        String text;
+        switch (option) {
+            case 0 : text = "More Ammo"; break;
+            case 1 : text = "More Bullet Speed & Range"; break;
+            case 2 : text = "More Player Speed"; break;
+            case 3 : text = "More Max Health"; break;
+            case 4 : text = "More XP"; break;
+            default : text = "Error in options text"; break; //if the option generated is invalid, it will output error message
+        }
 
         int percentageIncrease = 0;
 
@@ -285,18 +286,18 @@ public class UpgradeMenu extends GameObject {
 
         if (w <= 0 || h <= 0) return null;
 
-        //gets an off-screen canvas of game objects and everything behind the pause menu to blur
+        //gets an off-screen canvas of game objects and everything behind the upgrade menu to blur
         BufferedImage rawSource = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
         Graphics2D containerGraphics = rawSource.createGraphics();
 
-        //hides pause menu overlay to prevent blurring of pause menu
+        //hides upgrade menu overlay to prevent blurring of pause menu
         boolean oldVisibility = this.isVisible;
         this.isVisible = false;
         boolean oldDebugVisibility = false;
         boolean hasDebugMenu = (debugHUD != null);
         if (hasDebugMenu) {
             oldDebugVisibility = debugHUD.isVisible();
-            debugHUD.setVisible(false); // Hide it from the blur snapshot
+            debugHUD.setVisible(false);
         }
 
         //draws the parent frame container components to the target texture
@@ -306,7 +307,7 @@ public class UpgradeMenu extends GameObject {
             debugHUD.setVisible(oldDebugVisibility);
         }
 
-        this.isVisible = oldVisibility; //unhides pause menu overlay
+        this.isVisible = oldVisibility; //unhides upgrade menu overlay
         containerGraphics.dispose();
 
         //downscaling of canvas/snapshot of screen for optimization, reduced number of calculations by scale factor^2
