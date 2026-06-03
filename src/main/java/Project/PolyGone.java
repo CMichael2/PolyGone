@@ -467,6 +467,14 @@ public class PolyGone extends Game {
         int bulletCurrX = b.getX();
         int bulletCurrY = b.getY();
 
+        int buffer = 100; //bullet travel in one frame
+        if (Math.abs(bulletCurrX - e.getX()) > buffer && Math.abs(bulletPrevX - e.getX()) > buffer) {
+            return false;
+        }
+        if (Math.abs(bulletCurrY - e.getY()) > buffer && Math.abs(bulletPrevY - e.getY()) > buffer) {
+            return false;
+        }
+
         //gets radius
         double bulletRadius = Player.bulletWidth / 2.0;
         double enemyRadius = Enemies.enemyWidth / 2.0;
@@ -556,6 +564,8 @@ public class PolyGone extends Game {
         player.currentPlayerXp = 0;
         player.totalPlayerXp = 0;
         player.currentAmmo = player.maxAmmo;
+
+        upgradeMenu.numberOfRerollsLeft = upgradeMenu.startingNumberOfRerolls;
 
         GameMouseInput.isMouseLeftClickPressed = false;
         GameMouseInput.reset();

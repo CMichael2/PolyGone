@@ -2,6 +2,7 @@ package Project;
 
 import Framework.GameObject;
 import java.awt.*;
+import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import javax.imageio.ImageIO;
@@ -180,11 +181,9 @@ public class GUI extends GameObject {
     }
 
     public void drawAmmoRegenCircle(Graphics2D g2d, int x, int y, long lastAmmoRegenTime, long ammoRegenCooldown, int diameter) {
-        double ammoRegenBarPercentage;
+        double ammoRegenBarPercentage = 0.0;
 
-        if (player.currentAmmo == player.maxAmmo) {
-            ammoRegenBarPercentage = 0.0;
-        } else {
+        if (player.isReloading){
             long timeElapsed = System.currentTimeMillis() - lastAmmoRegenTime;
 
             //calculate percentage of completion

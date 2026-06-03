@@ -28,6 +28,8 @@ public class WinMenu extends GameObject {
 
     public void setWinMenuVisible(boolean visible) {
         this.isVisible = visible;
+        GameMouseInput.isMouseLeftClickPressed = false;
+        GameMouseInput.reset();
         if (visible) {
             this.needsBlurRefresh = true; //tells game to blur background
         } else {

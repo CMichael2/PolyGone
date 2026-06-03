@@ -30,6 +30,8 @@ public class PauseMenu extends GameObject {
     }
 
     public void setPauseMenuVisible(boolean visible) {
+        GameMouseInput.isMouseLeftClickPressed = false;
+        GameMouseInput.reset();
         this.isPauseMenuVisible = visible;
         System.out.println("Player paused game");
         if (visible) {
@@ -125,7 +127,7 @@ public class PauseMenu extends GameObject {
         }
 
         //button text centering and creation
-        String text = "Exit";
+        String text = "Quit Game";
         g2d.setFont(font);
         g2d.setColor(new Color(50, 50, 50));
         FontMetrics metrics = g2d.getFontMetrics(font);

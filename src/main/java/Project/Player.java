@@ -10,23 +10,25 @@ public class Player extends GameObject{
     @Override
     public void act() {}
 
-    public int playerSpeed = 10; //change to determine player movement speed and coordinate change per key press
+    public int playerSpeed = 6; //change to determine player movement speed and coordinate change per key press
 
     public int playerMaxHealth = 100;
     public int playerCurrentHealth = playerMaxHealth;
 
-    public int startingPlayerLevel = 49; //starting player level
+    public int startingPlayerLevel = 0; //starting player level
     public int playerLevel = startingPlayerLevel;
     public double currentPlayerXp = 0;
     public int totalPlayerXp = 0;
     public int playerXPBarMaxXP = 10 + (int)((Math.pow(playerLevel, 1.8)/4.0)+0.5); //base xp level up requirement
     public final int PLAYER_XP_BAR_MAX_XP_BASE = 10;
+    PolyGone game;
 
     public Player(PolyGone mainGame) { //sets attributes for player game object
         this.setSize(40, 40);
         this.setX((mainGame.getWidth() / 2) - (this.getHeight() / 2));
         this.setY((mainGame.getHeight() / 2) - (this.getHeight() / 2));
         this.setColor(Color.CYAN);
+        this.game = mainGame;
     }
 
     public int updateHealth(int healthReduction) {
@@ -66,7 +68,6 @@ public class Player extends GameObject{
     }
 
     public void playerMovementUpdate(PolyGone mainGame) {
-        // 1. EXECUTE MOVEMENT FIRST: Move the player based on inputs without checking borders yet
         if (mainGame.isKeyPressed(KeyEvent.VK_W) || mainGame.isKeyPressed(KeyEvent.VK_UP)) {
             this.moveUp();
         }
@@ -148,21 +149,23 @@ public class Player extends GameObject{
         }
     }
 
-    public int maxAmmo = 10; //sets max ammo
+    public int maxAmmo = 15; //sets max ammo
     public int currentAmmo = maxAmmo;
     public long lastAmmoRegenTime = 0; //do not change
     public long ammoRegenCooldown = 400; //sets ammo regeneration time
+    public boolean isReloading = false;
 
     public void updateAmmoRegen() {
-        if (currentAmmo < maxAmmo) { //only regens ammo when needed
-            long currentTime = System.currentTimeMillis();
-
-            if (currentTime - lastAmmoRegenTime > ammoRegenCooldown) { //waits till the regeneration time is over to regen ammo
-                currentAmmo++;
-                lastAmmoRegenTime = currentTime; // Reset the regeneration timer
-            }
-        } else {
+        if ((currentAmmo == 0 || game.isKeyPressed(KeyEvent.VK_R)) && !isReloading && currentAmmo!=maxAmmo) { //only regens ammo when needed
+            isReloading = true;
             lastAmmoRegenTime = System.currentTimeMillis();
+        }
+        if (isReloading) {
+            long currentTime = System.currentTimeMillis();
+            if (currentTime - lastAmmoRegenTime >= ammoRegenCooldown) { //waits till the regeneration time is over to regen ammo
+                currentAmmo = maxAmmo;
+                isReloading = false;
+            }
         }
     }
 

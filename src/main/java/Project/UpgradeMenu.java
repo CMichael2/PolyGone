@@ -25,6 +25,12 @@ public class UpgradeMenu extends GameObject {
 
     private final int cardWidth = 350;
     private final int cardHeight = 500;
+    private final int REROLL_Y = 750;
+    private final int buttonWidth = 350;
+    private final int buttonHeight = 50;
+
+    public int numberOfRerollsLeft = 10;
+    public int startingNumberOfRerolls = 10;
 
     private boolean hasMouseBeenReleasedSinceOpen = false;
 
@@ -54,21 +60,36 @@ public class UpgradeMenu extends GameObject {
     private void rollUpgradeCards() {
         Random random = new Random();
         for (int i = 0; i < 3; i++) {
+            boolean isDuplicate;
+            int rolledOption;
+
+            do {
+                isDuplicate = false;
+                rolledOption = random.nextInt(5); //number of options
+
+                for (int k = 0; k < i; k++) {
+                    if (cardOptions[k] == rolledOption) {
+                        isDuplicate = true;
+                        break;
+                    }
+                }
+            } while (isDuplicate);
+
             int roll = random.nextInt(100) + 1;
 
             //percentage based rarity rolling
-            if (roll <= 50) {
-                cardRarities[i] = 0; //50%
-            } else if (roll <= 75) {
+            if (roll <= 60) {
+                cardRarities[i] = 0; //60%
+            } else if (roll <= 85) {
                 cardRarities[i] = 1; //25%
-            } else if (roll <= 90) {
-                cardRarities[i] = 2; //15%
-            } else if (roll <= 98) {
-                cardRarities[i] = 3; //8%
+            } else if (roll <= 95) {
+                cardRarities[i] = 2; //10%
+            } else if (roll <= 99) {
+                cardRarities[i] = 3; //4%
             } else {
-                cardRarities[i] = 4; //2%
+                cardRarities[i] = 4; //1%
             }
-            cardOptions[i] = random.nextInt(5); //number of card upgrade types
+            cardOptions[i] = rolledOption;
         }
     }
 
@@ -100,6 +121,8 @@ public class UpgradeMenu extends GameObject {
         g2d.setColor(Color.WHITE);
         g2d.drawString("SELECT AN UPGRADE", this.getWidth() / 2 - 230, 150);
 
+        drawRerollButton(g2d, this.getWidth()/2, 750, GameMouseInput.mouseX, GameMouseInput.mouseY);
+
         int cardY = this.getHeight() / 2;
         //for spacing between cards
         int centerX = this.getWidth() / 2;
@@ -119,6 +142,66 @@ public class UpgradeMenu extends GameObject {
             }
 
         }
+    }
+
+    public void drawRerollButton(Graphics2D g2d, int x, int y, int mouseX, int mouseY) {
+        x = x - buttonWidth/2;
+        y = y - buttonHeight/2;
+
+        boolean isHovered = mouseX >= x && mouseX <= x + buttonWidth && mouseY >= y && mouseY <= y + buttonHeight;
+
+        //inner button
+        if (isHovered) {
+            g2d.setColor(new Color(114, 119, 139)); //dark gray
+        } else {
+            g2d.setColor(new Color(148, 148, 148)); //light gray
+        }
+        g2d.fillRect(x, y, buttonWidth, buttonHeight);
+
+        //outer border
+        if (isHovered) {
+            g2d.setColor(Color.WHITE); //white
+        } else {
+            g2d.setColor(Color.BLACK); //black
+        }
+
+        g2d.fillRect(x, y, buttonWidth, 2); //top line
+        g2d.fillRect(x, y + buttonHeight - 2, buttonWidth, 2); //bottom line
+        g2d.fillRect(x, y, 2, buttonHeight); //left line
+        g2d.fillRect(x + buttonWidth - 2, y, 2, buttonHeight); //right line
+
+        int thickness = 4; //thickness of shadows
+        //shadows
+        if (isHovered) {
+            //top and left shadows
+            g2d.setColor(new Color(171, 178, 209));
+            g2d.fillRect(x + 2, y + 2, buttonWidth - 4, thickness);
+            g2d.fillRect(x + 2, y + 2, thickness, buttonHeight - 4);
+
+            //bottom and right shadows
+            g2d.setColor(new Color(57, 59, 70));
+            g2d.fillRect(x + 2, y + buttonHeight - 2 - thickness, buttonWidth - 4, thickness);
+            g2d.fillRect(x + buttonWidth - 2 - thickness, y + 2, thickness, buttonHeight - 4);
+        } else {
+            //top and left shadows
+            g2d.setColor(new Color(255, 255, 255));
+            g2d.fillRect(x + 2, y + 2, buttonWidth - 4, thickness);
+            g2d.fillRect(x + 2, y + 2, thickness, buttonHeight - 4);
+
+            //right and bottom shadows
+            g2d.setColor(new Color(85, 85, 85));
+            g2d.fillRect(x + 2, y + buttonHeight - 2 - thickness, buttonWidth - 4, thickness);
+            g2d.fillRect(x + buttonWidth - 2 - thickness, y + 2, thickness, buttonHeight - 4);
+        }
+
+        //button text centering and creation
+        String text = "Rerolls Left: " + numberOfRerollsLeft;
+        g2d.setFont(font);
+        g2d.setColor(new Color(50, 50, 50));
+        FontMetrics metrics = g2d.getFontMetrics(font);
+        int textX = x + (buttonWidth - metrics.stringWidth(text)) / 2;
+        int textY = y + ((buttonHeight - metrics.getHeight()) / 2) + metrics.getAscent() + 4;
+        g2d.drawString(text, textX, textY);
     }
 
     private boolean drawCardFrame(Graphics2D g2d, int x, int y, int w, int h, int mouseX, int mouseY, Color bg, Color shadowLight, Color shadowDark) {
@@ -273,6 +356,23 @@ public class UpgradeMenu extends GameObject {
                     game.closeUpgradeMenu();
                     return;
                 }
+            }
+        }
+        int midX = this.getWidth() / 2;
+
+        int mouseX = GameMouseInput.mouseX;
+        int mouseY = GameMouseInput.mouseY;
+
+        if (GameMouseInput.isMouseLeftClickPressed) {
+            int rx = midX - buttonWidth / 2;
+            int ry = REROLL_Y - buttonHeight / 2;
+            if ((mouseX >= rx && mouseX <= rx + buttonWidth && mouseY >= ry && mouseY <= ry + buttonHeight) && (numberOfRerollsLeft > 0)) {
+                numberOfRerollsLeft -= 1;
+                setUpgradeMenuVisible(true);
+                GameMouseInput.reset();
+                GameMouseInput.isMouseLeftClickPressed = false;
+                System.out.println("Player rerolled");
+                return;
             }
         }
         this.repaint(); //do not remove, very important
