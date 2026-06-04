@@ -2,6 +2,9 @@ package Project;
 
 import Framework.GameObject;
 import java.awt.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.ObjectInputStream;
 
 public class MainMenu extends GameObject {
 
@@ -20,7 +23,9 @@ public class MainMenu extends GameObject {
     private final int saveFrameHeight = 600;
     private final int saveFrameY = 400;
     private final int saveButtonWidth = 300;
-    private int selectedSave = 0;
+    public int selectedSave = 0;
+    public int unfilledSlot = 0;
+    private String[] slotTexts = {"Empty Slot", "Empty Slot", "Empty Slot"};
 
     private double animationSaveY = 1200;
     private final double animationSpeed = 0.1; //speed of animation, decrease to slow
@@ -44,6 +49,39 @@ public class MainMenu extends GameObject {
         GameMouseInput.reset();
     }
 
+    private void loadSlotData() {
+        for (int i = 1; i <= 3; i++) {
+            String filePath = "saves/save" + i + ".ser";
+            java.io.File file = new java.io.File(filePath);
+
+            if (file.exists()) {
+                try (FileInputStream fileIn = new FileInputStream(file);
+                     ObjectInputStream objIn = new ObjectInputStream(fileIn)) {
+
+                    // --- This is the Object to String conversion step ---
+                    SaveGame save = (SaveGame) objIn.readObject();
+
+                    // Format a clean text layout using your save properties
+                    slotTexts[i - 1] = "HP: " + save.savedPlayerHealth + "/" + save.savedPlayerMaxHealth +
+                            " | Level: " + (int)save.savedPlayerLevel +
+                            " | Ammo: " + save.savedPlayerMaxAmmo;
+
+                } catch (Exception e) {
+                    slotTexts[i - 1] = "Corrupted Save";
+                }
+            } else {
+                slotTexts[i - 1] = "Empty Slot";
+            }
+        }
+    }
+
+    public boolean isSlotFilled(int slotNumber) {
+        String filePath = "saves/save" + slotNumber + ".ser";
+        java.io.File file = new java.io.File(filePath);
+
+        return file.exists() && file.isFile();
+    }
+
     @Override
     public void paint(Graphics g) {
         if (!isVisible) return; //determines if it should be drawn
@@ -63,9 +101,10 @@ public class MainMenu extends GameObject {
         if (saveMenuState != 0) {
             int currentY = (int) animationSaveY;
 
-            drawSaveFrame1(g2d, 650, currentY, GameMouseInput.mouseX, GameMouseInput.mouseY);
-            drawSaveFrame2(g2d, 1000, currentY, GameMouseInput.mouseX, GameMouseInput.mouseY);
-            drawSaveFrame3(g2d, 1350, currentY, GameMouseInput.mouseX, GameMouseInput.mouseY);
+            drawSaveFrame(g2d, 650, currentY, slotTexts[0], 1, GameMouseInput.mouseX, GameMouseInput.mouseY);
+            drawSaveFrame(g2d, 1000, currentY, slotTexts[1], 2, GameMouseInput.mouseX, GameMouseInput.mouseY);
+            drawSaveFrame(g2d, 1350, currentY, slotTexts[2], 3, GameMouseInput.mouseX, GameMouseInput.mouseY);
+
             drawSavePlayButton(g2d, 750, currentY+350, GameMouseInput.mouseX, GameMouseInput.mouseY);
             drawSaveDeleteButton(g2d, 1200, currentY+350, GameMouseInput.mouseX, GameMouseInput.mouseY);
         }
@@ -371,93 +410,33 @@ public class MainMenu extends GameObject {
         g2d.drawString(text, textX, textY);
     }
 
-    public void drawSaveFrame1(Graphics2D g2d, int x, int y, int mouseX, int mouseY) {
-        x = x - saveFrameWidth/2;
-        y = y - saveFrameHeight/2;
+    public void drawSaveFrame(Graphics2D g2d, int x, int y, String slotText, int slotID, int mouseX, int mouseY) {
+        x = x - saveFrameWidth / 2;
+        y = y - saveFrameHeight / 2;
 
         boolean isHovered = mouseX >= x && mouseX <= x + saveFrameWidth && mouseY >= y && mouseY <= y + saveFrameHeight;
 
-        //inner button
-        if (isHovered || selectedSave == 1) {
-            g2d.setColor(new Color(114, 119, 139)); //dark gray
+        //background
+        if (isHovered || selectedSave == slotID) {
+            g2d.setColor(new Color(114, 119, 139));
         } else {
-            g2d.setColor(new Color(148, 148, 148)); //light gray
+            g2d.setColor(new Color(148, 148, 148));
         }
         g2d.fillRect(x, y, saveFrameWidth, saveFrameHeight);
 
-        //outer border
-        if (isHovered || selectedSave == 1) {
-            g2d.setColor(Color.WHITE); //white
+        //outer borders
+        if (isHovered || selectedSave == slotID) {
+            g2d.setColor(Color.WHITE);
         } else {
-            g2d.setColor(Color.BLACK); //black
+            g2d.setColor(Color.BLACK);
         }
-
-        g2d.fillRect(x, y, saveFrameWidth, 2); //top line
-        g2d.fillRect(x, y + saveFrameHeight - 2, saveFrameWidth, 2); //bottom line
-        g2d.fillRect(x, y, 2, saveFrameHeight); //left line
-        g2d.fillRect(x + saveFrameWidth - 2, y, 2, saveFrameHeight); //right line
+        g2d.fillRect(x, y, saveFrameWidth, 2);
+        g2d.fillRect(x, y + saveFrameHeight - 2, saveFrameWidth, 2);
+        g2d.fillRect(x, y, 2, saveFrameHeight);
+        g2d.fillRect(x + saveFrameWidth - 2, y, 2, saveFrameHeight);
 
         int thickness = 4; //thickness of shadows
-        //shadows
-        if (isHovered || selectedSave == 1) {
-            //top and left shadows
-            g2d.setColor(new Color(171, 178, 209));
-            g2d.fillRect(x + 2, y + 2, saveFrameWidth - 4, thickness);
-            g2d.fillRect(x + 2, y + 2, thickness, saveFrameHeight - 4);
 
-            //bottom and right shadows
-            g2d.setColor(new Color(57, 59, 70));
-            g2d.fillRect(x + 2, y + saveFrameHeight - 2 - thickness, saveFrameWidth - 4, thickness);
-            g2d.fillRect(x + saveFrameWidth - 2 - thickness, y + 2, thickness, saveFrameHeight - 4);
-        } else {
-            //top and left shadows
-            g2d.setColor(new Color(255, 255, 255));
-            g2d.fillRect(x + 2, y + 2, saveFrameWidth - 4, thickness);
-            g2d.fillRect(x + 2, y + 2, thickness, saveFrameHeight - 4);
-
-            //right and bottom shadows
-            g2d.setColor(new Color(85, 85, 85));
-            g2d.fillRect(x + 2, y + saveFrameHeight - 2 - thickness, saveFrameWidth - 4, thickness);
-            g2d.fillRect(x + saveFrameWidth - 2 - thickness, y + 2, thickness, saveFrameHeight - 4);
-        }
-
-        //button text centering and creation
-        String text = "Placeholder";
-        g2d.setFont(font);
-        g2d.setColor(new Color(50, 50, 50));
-        FontMetrics metrics = g2d.getFontMetrics(font);
-        int textX = x + (saveFrameWidth - metrics.stringWidth(text)) / 2;
-        int textY = y + ((saveFrameHeight - metrics.getHeight()) / 2) + metrics.getAscent() + 4;
-        g2d.drawString(text, textX, textY);
-    }
-
-    public void drawSaveFrame2(Graphics2D g2d, int x, int y, int mouseX, int mouseY) {
-        x = x - saveFrameWidth/2;
-        y = y - saveFrameHeight/2;
-
-        boolean isHovered = mouseX >= x && mouseX <= x + saveFrameWidth && mouseY >= y && mouseY <= y + saveFrameHeight;
-
-        //inner button
-        if (isHovered || selectedSave == 2) {
-            g2d.setColor(new Color(114, 119, 139)); //dark gray
-        } else {
-            g2d.setColor(new Color(148, 148, 148)); //light gray
-        }
-        g2d.fillRect(x, y, saveFrameWidth, saveFrameHeight);
-
-        //outer border
-        if (isHovered || selectedSave == 2) {
-            g2d.setColor(Color.WHITE); //white
-        } else {
-            g2d.setColor(Color.BLACK); //black
-        }
-
-        g2d.fillRect(x, y, saveFrameWidth, 2); //top line
-        g2d.fillRect(x, y + saveFrameHeight - 2, saveFrameWidth, 2); //bottom line
-        g2d.fillRect(x, y, 2, saveFrameHeight); //left line
-        g2d.fillRect(x + saveFrameWidth - 2, y, 2, saveFrameHeight); //right line
-
-        int thickness = 4; //thickness of shadows
         //shadows
         if (isHovered || selectedSave == 2) {
             //top and left shadows
@@ -481,74 +460,16 @@ public class MainMenu extends GameObject {
             g2d.fillRect(x + saveFrameWidth - 2 - thickness, y + 2, thickness, saveFrameHeight - 4);
         }
 
-        //button text centering and creation
-        String text = "Placeholder";
-        g2d.setFont(font);
+        //header
+        g2d.setFont(new Font("Consolas", Font.BOLD, 24));
+        g2d.setColor(new Color(30, 30, 30));
+        g2d.drawString("SLOT " + slotID, x + 20, y + 40);
+
+        //save details
+        g2d.setFont(new Font("Consolas", Font.PLAIN, 16));
         g2d.setColor(new Color(50, 50, 50));
-        FontMetrics metrics = g2d.getFontMetrics(font);
-        int textX = x + (saveFrameWidth - metrics.stringWidth(text)) / 2;
-        int textY = y + ((saveFrameHeight - metrics.getHeight()) / 2) + metrics.getAscent() + 4;
-        g2d.drawString(text, textX, textY);
-    }
 
-    public void drawSaveFrame3(Graphics2D g2d, int x, int y, int mouseX, int mouseY) {
-        x = x - saveFrameWidth/2;
-        y = y - saveFrameHeight/2;
-
-        boolean isHovered = mouseX >= x && mouseX <= x + saveFrameWidth && mouseY >= y && mouseY <= y + saveFrameHeight;
-
-        //inner button
-        if (isHovered || selectedSave == 3) {
-            g2d.setColor(new Color(114, 119, 139)); //dark gray
-        } else {
-            g2d.setColor(new Color(148, 148, 148)); //light gray
-        }
-        g2d.fillRect(x, y, saveFrameWidth, saveFrameHeight);
-
-        //outer border
-        if (isHovered || selectedSave == 3) {
-            g2d.setColor(Color.WHITE); //white
-        } else {
-            g2d.setColor(Color.BLACK); //black
-        }
-
-        g2d.fillRect(x, y, saveFrameWidth, 2); //top line
-        g2d.fillRect(x, y + saveFrameHeight - 2, saveFrameWidth, 2); //bottom line
-        g2d.fillRect(x, y, 2, saveFrameHeight); //left line
-        g2d.fillRect(x + saveFrameWidth - 2, y, 2, saveFrameHeight); //right line
-
-        int thickness = 4; //thickness of shadows
-        //shadows
-        if (isHovered || selectedSave == 3) {
-            //top and left shadows
-            g2d.setColor(new Color(171, 178, 209));
-            g2d.fillRect(x + 2, y + 2, saveFrameWidth - 4, thickness);
-            g2d.fillRect(x + 2, y + 2, thickness, saveFrameHeight - 4);
-
-            //bottom and right shadows
-            g2d.setColor(new Color(57, 59, 70));
-            g2d.fillRect(x + 2, y + saveFrameHeight - 2 - thickness, saveFrameWidth - 4, thickness);
-            g2d.fillRect(x + saveFrameWidth - 2 - thickness, y + 2, thickness, saveFrameHeight - 4);
-        } else {
-            //top and left shadows
-            g2d.setColor(new Color(255, 255, 255));
-            g2d.fillRect(x + 2, y + 2, saveFrameWidth - 4, thickness);
-            g2d.fillRect(x + 2, y + 2, thickness, saveFrameHeight - 4);
-
-            //right and bottom shadows
-            g2d.setColor(new Color(85, 85, 85));
-            g2d.fillRect(x + 2, y + saveFrameHeight - 2 - thickness, saveFrameWidth - 4, thickness);
-            g2d.fillRect(x + saveFrameWidth - 2 - thickness, y + 2, thickness, saveFrameHeight - 4);
-        }
-
-        //button text centering and creation
-        String text = "Placeholder";
-        g2d.setFont(font);
-        g2d.setColor(new Color(50, 50, 50));
-        FontMetrics metrics = g2d.getFontMetrics(font);
-        int textX = x + (saveFrameWidth - metrics.stringWidth(text)) / 2;
-        int textY = y + ((saveFrameHeight - metrics.getHeight()) / 2) + metrics.getAscent() + 4;
-        g2d.drawString(text, textX, textY);
+        g2d.drawString(slotText, x + 20, y + 100);
     }
 
     public void drawSavePlayButton(Graphics2D g2d, int x, int y, int mouseX, int mouseY) {
@@ -679,18 +600,44 @@ public class MainMenu extends GameObject {
         int mouseY = GameMouseInput.mouseY;
 
         if (GameMouseInput.isMouseLeftClickPressed) {
+            //new game button
             int nx = buttonX - buttonWidth / 2;
             int ny = newGameY - buttonHeight / 2;
             if (mouseX >= nx && mouseX <= nx + buttonWidth && mouseY >= ny && mouseY <= ny + buttonHeight) {
+                boolean allSlotsFull = false;
+
+                if (isSlotFilled(1)) {
+                    if (isSlotFilled(2)) {
+                        if (isSlotFilled(3)) {
+                            allSlotsFull = true;
+                        } else {
+                            unfilledSlot = 3;
+                        }
+                    } else {
+                        unfilledSlot = 2;
+                    }
+                } else {
+                    unfilledSlot = 1;
+                }
+
+                if (allSlotsFull) {
+                    System.out.println("All save slots filled");
+                    GameMouseInput.isMouseLeftClickPressed = false;
+                    GameMouseInput.reset();
+                    return;
+                }
+                game.saveSlotNumber = unfilledSlot;
                 game.closeMainMenu();
+                saveMenuState = 0;
                 System.out.println("Player began new playthrough");
                 return;
             }
-
+            //continue from save button
             int cx = buttonX - buttonWidth / 2;
             int cy = continueY - buttonHeight / 2;
             if (mouseX >= cx && mouseX <= cx + buttonWidth && mouseY >= cy && mouseY <= cy + buttonHeight) {
                 if (saveMenuState == 0) {
+                    loadSlotData();
                     saveMenuState = 1; //slides up
                     animationSaveY = this.getHeight() + 350;
                 } else if (saveMenuState == 2) {
@@ -702,68 +649,123 @@ public class MainMenu extends GameObject {
                 System.out.println("Player has opened save selection screen");
                 return;
             }
-
+            //settings button
             int sx = buttonX - buttonWidth / 2;
             int sy = settingsY - buttonHeight / 2;
             if (mouseX >= sx && mouseX <= sx + buttonWidth && mouseY >= sy && mouseY <= sy + buttonHeight) {
                 System.out.println("Player has opened settings menu");
                 return;
             }
-
+            //credits button
             int crx = buttonX - buttonWidth / 2;
             int cry = creditsY - buttonHeight / 2;
             if (mouseX >= crx && mouseX <= crx + buttonWidth && mouseY >= cry && mouseY <= cry + buttonHeight) {
                 System.out.println("Player has opened credits screen");
                 return;
             }
-
+            //quit button
             int ex = buttonX - buttonWidth / 2;
             int ey = quitY - buttonHeight / 2;
             if (mouseX >= ex && mouseX <= ex + buttonWidth && mouseY >= ey && mouseY <= ey + buttonHeight) {
                 game.exitGame();
                 return;
             }
-
-            int s1x = 650 - saveFrameWidth / 2;
-            int s1y = saveFrameY - saveFrameHeight / 2;
-            if (mouseX >= s1x && mouseX <= s1x + saveFrameWidth && mouseY >= s1y && mouseY <= s1y + saveFrameHeight) {
-                if (selectedSave == 1) {
-                    selectedSave = 0;
-                } else {
-                    selectedSave = 1;
+            if (saveMenuState == 2) { //is visible
+                int s1x = 650 - saveFrameWidth / 2;
+                int s1y = saveFrameY - saveFrameHeight / 2;
+                if (mouseX >= s1x && mouseX <= s1x + saveFrameWidth && mouseY >= s1y && mouseY <= s1y + saveFrameHeight) {
+                    if (selectedSave == 1) {
+                        selectedSave = 0;
+                    } else {
+                        selectedSave = 1;
+                    }
+                    GameMouseInput.isMouseLeftClickPressed = false;
+                    GameMouseInput.reset();
+                    System.out.println("Save 1 selected");
+                    return;
                 }
-                GameMouseInput.isMouseLeftClickPressed = false;
-                GameMouseInput.reset();
-                System.out.println("Save 1 selected");
-                return;
-            }
 
-            int s2x = 1000 - saveFrameWidth / 2;
-            int s2y = saveFrameY - saveFrameHeight / 2;
-            if (mouseX >= s2x && mouseX <= s2x + saveFrameWidth && mouseY >= s2y && mouseY <= s2y + saveFrameHeight) {
-                if (selectedSave == 2) {
-                    selectedSave = 0;
-                } else {
-                    selectedSave = 2;
+                int s2x = 1000 - saveFrameWidth / 2;
+                int s2y = saveFrameY - saveFrameHeight / 2;
+                if (mouseX >= s2x && mouseX <= s2x + saveFrameWidth && mouseY >= s2y && mouseY <= s2y + saveFrameHeight) {
+                    if (selectedSave == 2) {
+                        selectedSave = 0;
+                    } else {
+                        selectedSave = 2;
+                    }
+                    GameMouseInput.isMouseLeftClickPressed = false;
+                    GameMouseInput.reset();
+                    System.out.println("Save 2 selected");
+                    return;
                 }
-                GameMouseInput.isMouseLeftClickPressed = false;
-                GameMouseInput.reset();
-                System.out.println("Save 2 selected");
-                return;
-            }
 
-            int s3x = 1350 - saveFrameWidth / 2;
-            int s3y = saveFrameY - saveFrameHeight / 2;
-            if (mouseX >= s3x && mouseX <= s3x + saveFrameWidth && mouseY >= s3y && mouseY <= s3y + saveFrameHeight) {
-                if (selectedSave == 3) {
-                    selectedSave = 0;
-                } else {
-                    selectedSave = 3;
+                int s3x = 1350 - saveFrameWidth / 2;
+                int s3y = saveFrameY - saveFrameHeight / 2;
+                if (mouseX >= s3x && mouseX <= s3x + saveFrameWidth && mouseY >= s3y && mouseY <= s3y + saveFrameHeight) {
+                    if (selectedSave == 3) {
+                        selectedSave = 0;
+                    } else {
+                        selectedSave = 3;
+                    }
+                    GameMouseInput.isMouseLeftClickPressed = false;
+                    GameMouseInput.reset();
+                    System.out.println("Save 3 selected");
+                    return;
                 }
-                GameMouseInput.isMouseLeftClickPressed = false;
-                GameMouseInput.reset();
-                System.out.println("Save 3 selected");
-                return;
+                //play button
+                int pX = 750 - saveButtonWidth / 2;
+                int pY = (int) animationSaveY + 350 - buttonHeight / 2;
+                if (mouseX >= pX && mouseX <= pX + saveButtonWidth && mouseY >= pY && mouseY <= pY + buttonHeight) {
+                    if (selectedSave == 0) {
+                        return;
+                    }
+
+                    String path = "saves/save" + selectedSave + ".ser"; //gets the path of the file to be read
+                    SaveGame loadedProgress = SaveGame.loadData(path); //creates an object with all the data
+
+                    if (loadedProgress != null) {
+                        // 1. Hand the data to the engine to store temporarily
+                        game.pendingSaveData = loadedProgress;
+                        game.saveSlotNumber = selectedSave;
+
+                        // 2. Close the main menu (which triggers your game loading state)
+                        game.closeMainMenu();
+                        saveMenuState = 0;
+                        System.out.println("Save cached. Closing menu to initialize player...");
+                    } else {
+                        System.out.println("Could not launch game: Save slot file is missing or corrupted");
+                    }
+
+                    GameMouseInput.isMouseLeftClickPressed = false;
+                    GameMouseInput.reset();
+                    return;
+                }
+
+                //delete button
+                int dX = 1200 - saveButtonWidth / 2;
+                int dY = (int) animationSaveY + 350 - buttonHeight / 2;
+                if (mouseX >= dX && mouseX <= dX + saveButtonWidth && mouseY >= dY && mouseY <= dY + buttonHeight) {
+                    if (selectedSave == 0) {
+                        return;
+                    }
+
+                    String filePath = "saves/save" + selectedSave + ".ser";
+                    File file = new File(filePath);
+
+                    if (file.exists()) {
+                        if (file.delete()) {
+                            System.out.println("Save " + selectedSave + " was deleted");
+                        } else {
+                            System.out.println("File deletion error");
+                        }
+                    }
+                    loadSlotData(); //refreshes graphics
+                    selectedSave = 0; //deselects the slot
+
+                    GameMouseInput.isMouseLeftClickPressed = false;
+                    GameMouseInput.reset();
+                    return;
+                }
             }
         }
 

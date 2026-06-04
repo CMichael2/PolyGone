@@ -8,6 +8,7 @@ package Framework;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Rectangle;
+import java.io.IOException;
 
 import javax.swing.JComponent;
 
@@ -119,5 +120,5 @@ public abstract class GameObject extends JComponent {
 	 * millisecond. It can be implemented to provide basic behavior for
 	 * an object, such as movement.
 	 */
-	public abstract void act();
+	public abstract void act() throws IOException;
 }

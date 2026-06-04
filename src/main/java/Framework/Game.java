@@ -13,6 +13,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.IOException;
 import java.util.ArrayList;
 
 import javax.swing.JButton;
@@ -117,7 +118,7 @@ public abstract class Game extends JFrame {
 	 * This may be used as a control method for checking user input and 
 	 * collision between any game objects
 	 */
-	public abstract void act();
+	public abstract void act() throws IOException;
 	
 	/**
 	 * Sets up the game and any objects.
@@ -219,11 +220,19 @@ public abstract class Game extends JFrame {
        	);
        _t = new Timer(1, new ActionListener() {
        		public void actionPerformed(ActionEvent e) {
-   				act();
-   				for (int i = 0; i < _ObjectList.size(); i++) {
+                try {
+                    act();
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                }
+                for (int i = 0; i < _ObjectList.size(); i++) {
    					GameObject o = (GameObject)_ObjectList.get(i);
-   					o.act();
-   				}
+                    try {
+                        o.act();
+                    } catch (IOException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }
        		}
        });
        addKeyListener(new KeyListener() {

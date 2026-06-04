@@ -5,11 +5,14 @@ import java.awt.*;
 import java.awt.image.BufferedImage; //off-screen canvas
 import java.awt.image.ConvolveOp; //used to scale up and down images
 import java.awt.image.Kernel; //a matrix used for math
+import java.io.IOException;
 
 public class PauseMenu extends GameObject {
 
     Player player; //reference to object
     PolyGone game;
+    SaveGame saveGame;
+    MainMenu mainMenu;
 
     private BufferedImage blurredSnapshot = null;
     private boolean needsBlurRefresh = false; //generates a new blur asset?
@@ -19,13 +22,15 @@ public class PauseMenu extends GameObject {
 
     private final int buttonWidth = 350;
     private final int buttonHeight = 50;
-    private final int RESUME_Y = 625;
-    private final int EXIT_TO_MAIN_Y = 550;
-    private final int EXIT_Y = 700;
+    private final int RESUME_Y = 550;
+    private final int SETTINGS_Y = 625;
+    private final int SQ_Y = 700;
 
-    public PauseMenu(PolyGone game, Player player) {
+    public PauseMenu(PolyGone game, Player player, MainMenu mainMenu) {
         this.player = player;
         this.game = game;
+        this.saveGame = new SaveGame();
+        this.mainMenu = mainMenu;
         this.setBounds(0, 0, game.getWidth(), game.getHeight()); //sets gui size and location
     }
 
@@ -69,14 +74,14 @@ public class PauseMenu extends GameObject {
             g2d.fillRect(0, 0, this.getWidth(), this.getHeight());
         }
 
-        drawExitButton(g2d, this.getWidth()/2, EXIT_Y, GameMouseInput.mouseX, GameMouseInput.mouseY);
+        drawSaveAndQuitButton(g2d, this.getWidth()/2, SQ_Y, GameMouseInput.mouseX, GameMouseInput.mouseY);
 
         drawResumeButton(g2d, this.getWidth()/2, RESUME_Y, GameMouseInput.mouseX, GameMouseInput.mouseY);
 
-        drawExitToMainMenu(g2d, this.getWidth()/2, EXIT_TO_MAIN_Y, GameMouseInput.mouseX, GameMouseInput.mouseY);
+        drawSettingsButton(g2d, this.getWidth()/2, SETTINGS_Y, GameMouseInput.mouseX, GameMouseInput.mouseY);
     }
 
-    public void drawExitButton(Graphics2D g2d, int x, int y, int mouseX, int mouseY) {
+    public void drawSaveAndQuitButton(Graphics2D g2d, int x, int y, int mouseX, int mouseY) {
         x = x - buttonWidth/2;
         y = y - buttonHeight/2;
 
@@ -127,7 +132,7 @@ public class PauseMenu extends GameObject {
         }
 
         //button text centering and creation
-        String text = "Quit Game";
+        String text = "Save & Quit";
         g2d.setFont(font);
         g2d.setColor(new Color(50, 50, 50));
         FontMetrics metrics = g2d.getFontMetrics(font);
@@ -196,7 +201,7 @@ public class PauseMenu extends GameObject {
         g2d.drawString(text, textX, textY);
     }
 
-    public void drawExitToMainMenu(Graphics2D g2d, int x, int y, int mouseX, int mouseY) {
+    public void drawSettingsButton(Graphics2D g2d, int x, int y, int mouseX, int mouseY) {
         x = x - buttonWidth/2;
         y = y - buttonHeight/2;
 
@@ -247,7 +252,7 @@ public class PauseMenu extends GameObject {
         }
 
         //button text centering and creation
-        String text = "Exit To Main Menu";
+        String text = "Settings";
         g2d.setFont(font);
         g2d.setColor(new Color(50, 50, 50));
         FontMetrics metrics = g2d.getFontMetrics(font);
@@ -257,7 +262,7 @@ public class PauseMenu extends GameObject {
     }
 
     @Override
-    public void act() {
+    public void act() throws IOException {
         if (!isPauseMenuVisible) return;
         int midX = this.getWidth() / 2;
 
@@ -274,19 +279,21 @@ public class PauseMenu extends GameObject {
             }
 
             int ex = midX - buttonWidth / 2;
-            int ey = EXIT_Y - buttonHeight / 2;
+            int ey = SETTINGS_Y - buttonHeight / 2;
             if (mouseX >= ex && mouseX <= ex + buttonWidth && mouseY >= ey && mouseY <= ey + buttonHeight) {
-                game.exitGame();
+                System.out.println("Player opened settings menu");
                 return;
             }
 
             int emx = midX - buttonWidth / 2;
-            int emy = EXIT_TO_MAIN_Y - buttonHeight / 2;
+            int emy = SQ_Y - buttonHeight / 2;
             if (mouseX >= emx && mouseX <= emx + buttonWidth && mouseY >= emy && mouseY <= emy + buttonHeight) {
+                saveGame.saveData(game, player, mainMenu);
                 game.closeUpgradeMenu();
                 game.unpauseGame();
                 game.gameReset();
                 game.openMainMenu();
+                mainMenu.selectedSave = 0;
                 System.out.println("Exited to main menu");
                 return;
             }

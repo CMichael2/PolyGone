@@ -5,7 +5,7 @@ import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 
-public class Player extends GameObject{
+public class Player extends GameObject {
 
     @Override
     public void act() {}

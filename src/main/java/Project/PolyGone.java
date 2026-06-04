@@ -3,6 +3,7 @@ package Project;
 import Framework.Game; //package containing the abstract class game where all methods are inherited from
 import javax.swing.*;
 import java.awt.event.KeyEvent;
+import java.io.IOException;
 import java.util.*;
 import java.awt.*;
 
@@ -30,6 +31,8 @@ public class PolyGone extends Game {
 
     public long totalTimeSpentPaused = 0;
 
+    public int saveSlotNumber = 0;
+
     private ArrayList<Bullets> bulletsList = new ArrayList<>(); //creates arraylist of bullets
 
     //class enemy variables
@@ -50,6 +53,9 @@ public class PolyGone extends Game {
     private MainMenu mainMenu;
     public boolean showMainMenu = false;
     public boolean isGameInitalStart = true;
+
+    private SaveGame saveGame;
+    public SaveGame pendingSaveData = null;
 
     private final Set<Integer> activeKeys = new HashSet<>(); //arraylist to store unlimited active keys
 
@@ -110,7 +116,7 @@ public class PolyGone extends Game {
     }
 
     @Override
-    public void act() {
+    public void act() throws IOException {
         if (showMainMenu) {
             if (mainMenu != null) {
                 mainMenu.act();
@@ -210,7 +216,7 @@ public class PolyGone extends Game {
                 add(upgradeMenu);
             }
             if (pauseMenu == null) {
-                pauseMenu = new PauseMenu(this, player);
+                pauseMenu = new PauseMenu(this, player, mainMenu);
                 add(pauseMenu);
             }
             if (winMenu == null) {
@@ -218,7 +224,6 @@ public class PolyGone extends Game {
                 add(winMenu);
             }
 
-            // Apply strict z-ordering once components are loaded
             this.getContentPane().setComponentZOrder(mainMenu, 0);
             this.getContentPane().setComponentZOrder(debugHUD, 1);
             this.getContentPane().setComponentZOrder(pauseMenu, 2);
@@ -227,9 +232,24 @@ public class PolyGone extends Game {
             this.getContentPane().setComponentZOrder(gameUI, 5);
             this.getContentPane().setComponentZOrder(player, 6);
         } else {
-            // If they already exist (like resetting a match), just make sure they're visible
             player.setVisible(true);
             gameUI.setVisible(true);
+
+            enemiesList.clear();
+            bulletsList.clear();
+        }
+
+        if (this.pendingSaveData != null) {
+            this.pendingSaveData.applyDataToGame(this, this.player);
+
+            // Clear the pending save tracking variable so it doesn't run again
+            this.pendingSaveData = null;
+            System.out.println("Save data successfully injected into newly initialized objects!");
+        } else {
+            if (player != null) {
+                gameReset();
+            }
+            System.out.println("No save data found. Starting a completely fresh run.");
         }
 
         GameMouseInput.isMouseLeftClickPressed = false;
@@ -586,7 +606,6 @@ public class PolyGone extends Game {
         ImageIcon icon = new ImageIcon("Assets/Polygon.png");
         game.setIconImage(icon.getImage());
 
-        //Removes the window elements
         game.setJMenuBar(null);
         game.setUndecorated(true);
         game.setResizable(false);
@@ -598,7 +617,6 @@ public class PolyGone extends Game {
 
         //launches window
         game.setVisible(true);
-        //game.setBackground(java.awt.Color.BLACK);
         game.initComponents(); //such as game objects
     }
 }
