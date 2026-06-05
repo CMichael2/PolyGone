@@ -14,18 +14,39 @@ public class WinMenu extends GameObject {
     private BufferedImage blurredSnapshot = null;
     private boolean needsBlurRefresh = false; //generates a new blur asset?
 
-    private Font font = new Font("Consolas", Font.BOLD, 30);
+    private final Font FONT = new Font("Consolas", Font.BOLD, 30);
     private boolean isVisible = false;
 
-    private int buttonWidth = 350;
-    private int buttonHeight = 50;
+    //button dimensions variables
+    private final int BUTTON_WIDTH = 350;
+    private final int BUTTON_HEIGHT = 50;
+    private int buttonX;
 
+    private final int KEEP_PLAYING_Y = 520;
+    private final int EXIT_TO_MAIN_MENU_Y = 580;
+    private final int PLAY_AGAIN_Y = 640;
+    private final int QUIT_Y = 700;
+
+    /**
+     * Constructor that initializes the game object and fields
+     * Pre: Game is initialized from the main method in PolyGone.java
+     * Post: Sets the size of this game object to fill the screen
+     * @param game Parameter from PolyGone
+     * @param player Parameter from Player
+     */
     public WinMenu(PolyGone game, Player player) {
         this.player = player;
         this.game = game;
         this.setBounds(0, 0, game.getWidth(), game.getHeight()); //sets gui size and location
+        this.buttonX = this.getWidth()/2;
     }
 
+    /**
+     * Helper method that sets the game object and its contents(buttons, etc.) to visible and blurs the background
+     * Pre: Game is initialized from the main method in PolyGone.java
+     * Post: isVisible boolean variable is set to true or false, resets mouse inputs to prevent instant clicking/selection, blurred background
+     * @param visible if it is true, this game object will become visible, and vice versa
+     */
     public void setWinMenuVisible(boolean visible) {
         this.isVisible = visible;
         GameMouseInput.isMouseLeftClickPressed = false;
@@ -41,6 +62,12 @@ public class WinMenu extends GameObject {
         }
     }
 
+    /**
+     * Draws all the buttons and text of the win menu
+     * Pre: isVisible = true (main menu is visible)
+     * Post: all the drawn buttons, text, etc.
+     * @param g  the <code>Graphics</code> context in which to paint
+     */
     @Override
     public void paint(Graphics g) {
         if (!isVisible) return; //determines if it should be drawn
@@ -69,15 +96,16 @@ public class WinMenu extends GameObject {
 
         drawWinText(g2d);
 
-        drawQuitButton(g2d, this.getWidth()/2, 700, GameMouseInput.mouseX, GameMouseInput.mouseY);
-
-        drawPlayAgainButton(g2d, this.getWidth()/2, 640, GameMouseInput.mouseX, GameMouseInput.mouseY);
-
-        drawExitToMainMenu(g2d, this.getWidth()/2, 580, GameMouseInput.mouseX, GameMouseInput.mouseY);
-
-        drawKeepPlayingButton(g2d, this.getWidth()/2, 520, GameMouseInput.mouseX, GameMouseInput.mouseY);
+        drawButtons(g2d, buttonX, KEEP_PLAYING_Y, GameMouseInput.mouseX, GameMouseInput.mouseY, "Keep Playing");
+        drawButtons(g2d, buttonX, EXIT_TO_MAIN_MENU_Y, GameMouseInput.mouseX, GameMouseInput.mouseY, "Exit To Main Menu");
+        drawButtons(g2d, buttonX, PLAY_AGAIN_Y, GameMouseInput.mouseX, GameMouseInput.mouseY, "Play Again");
+        drawButtons(g2d, buttonX, QUIT_Y, GameMouseInput.mouseX, GameMouseInput.mouseY, "Quit");
     }
 
+    /**
+     * Draws the win text
+     * @param g2d Abstract class passing
+     */
     public void drawWinText(Graphics2D g2d) {
         String text = "YOU WIN";
 
@@ -87,17 +115,26 @@ public class WinMenu extends GameObject {
         FontMetrics metrics = g2d.getFontMetrics();
         int textWidth = metrics.stringWidth(text);
 
-        int x = (this.getWidth() - textWidth) / 2;
+        int x = (this.getWidth() - textWidth) / 2; //centers text
         int y = this.getHeight()/2 - 100;
 
         g2d.drawString(text, x, y);
     }
 
-    public void drawQuitButton(Graphics2D g2d, int x, int y, int mouseX, int mouseY) {
-        x = x - buttonWidth/2;
-        y = y - buttonHeight/2;
+    /**
+     * Draws win menu buttons with dynamic graphics if the mouse is hovering
+     * @param g2d Abstract class passing
+     * @param x X coordinate of the button
+     * @param y Y coordinate of the button
+     * @param mouseX The player's mouses' current X location
+     * @param mouseY The player's mouses' current Y location
+     * @param text The specific text that is displayed on the button such as "Play Again" or "Quit"
+     */
+    public void drawButtons(Graphics2D g2d, int x, int y, int mouseX, int mouseY, String text) {
+        x = x - BUTTON_WIDTH /2;
+        y = y - BUTTON_HEIGHT /2;
 
-        boolean isHovered = mouseX >= x && mouseX <= x + buttonWidth && mouseY >= y && mouseY <= y + buttonHeight;
+        boolean isHovered = mouseX >= x && mouseX <= x + BUTTON_WIDTH && mouseY >= y && mouseY <= y + BUTTON_HEIGHT;
 
         //inner button
         if (isHovered) {
@@ -105,7 +142,7 @@ public class WinMenu extends GameObject {
         } else {
             g2d.setColor(new Color(148, 148, 148)); //light gray
         }
-        g2d.fillRect(x, y, buttonWidth, buttonHeight);
+        g2d.fillRect(x, y, BUTTON_WIDTH, BUTTON_HEIGHT);
 
         //outer border
         if (isHovered) {
@@ -114,263 +151,112 @@ public class WinMenu extends GameObject {
             g2d.setColor(Color.BLACK); //black
         }
 
-        g2d.fillRect(x, y, buttonWidth, 2); //top line
-        g2d.fillRect(x, y + buttonHeight - 2, buttonWidth, 2); //bottom line
-        g2d.fillRect(x, y, 2, buttonHeight); //left line
-        g2d.fillRect(x + buttonWidth - 2, y, 2, buttonHeight); //right line
+        g2d.fillRect(x, y, BUTTON_WIDTH, 2); //top line
+        g2d.fillRect(x, y + BUTTON_HEIGHT - 2, BUTTON_WIDTH, 2); //bottom line
+        g2d.fillRect(x, y, 2, BUTTON_HEIGHT); //left line
+        g2d.fillRect(x + BUTTON_WIDTH - 2, y, 2, BUTTON_HEIGHT); //right line
 
         int thickness = 4; //thickness of shadows
         //shadows
         if (isHovered) {
             //top and left shadows
             g2d.setColor(new Color(171, 178, 209));
-            g2d.fillRect(x + 2, y + 2, buttonWidth - 4, thickness);
-            g2d.fillRect(x + 2, y + 2, thickness, buttonHeight - 4);
+            g2d.fillRect(x + 2, y + 2, BUTTON_WIDTH - 4, thickness);
+            g2d.fillRect(x + 2, y + 2, thickness, BUTTON_HEIGHT - 4);
 
             //bottom and right shadows
             g2d.setColor(new Color(57, 59, 70));
-            g2d.fillRect(x + 2, y + buttonHeight - 2 - thickness, buttonWidth - 4, thickness);
-            g2d.fillRect(x + buttonWidth - 2 - thickness, y + 2, thickness, buttonHeight - 4);
         } else {
             //top and left shadows
             g2d.setColor(new Color(255, 255, 255));
-            g2d.fillRect(x + 2, y + 2, buttonWidth - 4, thickness);
-            g2d.fillRect(x + 2, y + 2, thickness, buttonHeight - 4);
+            g2d.fillRect(x + 2, y + 2, BUTTON_WIDTH - 4, thickness);
+            g2d.fillRect(x + 2, y + 2, thickness, BUTTON_HEIGHT - 4);
 
             //right and bottom shadows
             g2d.setColor(new Color(85, 85, 85));
-            g2d.fillRect(x + 2, y + buttonHeight - 2 - thickness, buttonWidth - 4, thickness);
-            g2d.fillRect(x + buttonWidth - 2 - thickness, y + 2, thickness, buttonHeight - 4);
         }
-
-        //exits game if exit button is clicked
-        if (isHovered && GameMouseInput.isMouseLeftClickPressed) {
-            game.exitGame();
-        }
+        g2d.fillRect(x + 2, y + BUTTON_HEIGHT - 2 - thickness, BUTTON_WIDTH - 4, thickness);
+        g2d.fillRect(x + BUTTON_WIDTH - 2 - thickness, y + 2, thickness, BUTTON_HEIGHT - 4);
 
         //button text centering and creation
-        String text = "Exit";
-        g2d.setFont(font);
+        g2d.setFont(FONT);
         g2d.setColor(new Color(50, 50, 50));
-        FontMetrics metrics = g2d.getFontMetrics(font);
-        int textX = x + (buttonWidth - metrics.stringWidth(text)) / 2;
-        int textY = y + ((buttonHeight - metrics.getHeight()) / 2) + metrics.getAscent() + 4;
+        FontMetrics metrics = g2d.getFontMetrics(FONT);
+        int textX = x + (BUTTON_WIDTH - metrics.stringWidth(text)) / 2;
+        int textY = y + ((BUTTON_HEIGHT - metrics.getHeight()) / 2) + metrics.getAscent() + 4;
         g2d.drawString(text, textX, textY);
     }
 
-    public void drawExitToMainMenu(Graphics2D g2d, int x, int y, int mouseX, int mouseY) {
-        x = x - buttonWidth/2;
-        y = y - buttonHeight/2;
-
-        boolean isHovered = mouseX >= x && mouseX <= x + buttonWidth && mouseY >= y && mouseY <= y + buttonHeight;
-
-        //inner button
-        if (isHovered) {
-            g2d.setColor(new Color(114, 119, 139)); //dark gray
-        } else {
-            g2d.setColor(new Color(148, 148, 148)); //light gray
-        }
-        g2d.fillRect(x, y, buttonWidth, buttonHeight);
-
-        //outer border
-        if (isHovered) {
-            g2d.setColor(Color.WHITE); //white
-        } else {
-            g2d.setColor(Color.BLACK); //black
-        }
-
-        g2d.fillRect(x, y, buttonWidth, 2); //top line
-        g2d.fillRect(x, y + buttonHeight - 2, buttonWidth, 2); //bottom line
-        g2d.fillRect(x, y, 2, buttonHeight); //left line
-        g2d.fillRect(x + buttonWidth - 2, y, 2, buttonHeight); //right line
-
-        int thickness = 4; //thickness of shadows
-        //shadows
-        if (isHovered) {
-            //top and left shadows
-            g2d.setColor(new Color(171, 178, 209));
-            g2d.fillRect(x + 2, y + 2, buttonWidth - 4, thickness);
-            g2d.fillRect(x + 2, y + 2, thickness, buttonHeight - 4);
-
-            //bottom and right shadows
-            g2d.setColor(new Color(57, 59, 70));
-            g2d.fillRect(x + 2, y + buttonHeight - 2 - thickness, buttonWidth - 4, thickness);
-            g2d.fillRect(x + buttonWidth - 2 - thickness, y + 2, thickness, buttonHeight - 4);
-        } else {
-            //top and left shadows
-            g2d.setColor(new Color(255, 255, 255));
-            g2d.fillRect(x + 2, y + 2, buttonWidth - 4, thickness);
-            g2d.fillRect(x + 2, y + 2, thickness, buttonHeight - 4);
-
-            //right and bottom shadows
-            g2d.setColor(new Color(85, 85, 85));
-            g2d.fillRect(x + 2, y + buttonHeight - 2 - thickness, buttonWidth - 4, thickness);
-            g2d.fillRect(x + buttonWidth - 2 - thickness, y + 2, thickness, buttonHeight - 4);
-        }
-
-        //exits to main menu if button is clicked
-        if (isHovered && GameMouseInput.isMouseLeftClickPressed) {
-            game.closeUpgradeMenu();
-            game.unpauseGame();
-            game.gameReset();
-            game.openMainMenu();
-            System.out.println("Exited to main menu");
-        }
-
-        //button text centering and creation
-        String text = "Exit To Main Menu";
-        g2d.setFont(font);
-        g2d.setColor(new Color(50, 50, 50));
-        FontMetrics metrics = g2d.getFontMetrics(font);
-        int textX = x + (buttonWidth - metrics.stringWidth(text)) / 2;
-        int textY = y + ((buttonHeight - metrics.getHeight()) / 2) + metrics.getAscent() + 4;
-        g2d.drawString(text, textX, textY);
-    }
-
-    public void drawPlayAgainButton(Graphics2D g2d, int x, int y, int mouseX, int mouseY) {
-        x = x - buttonWidth/2;
-        y = y - buttonHeight/2;
-
-        boolean isHovered = mouseX >= x && mouseX <= x + buttonWidth && mouseY >= y && mouseY <= y + buttonHeight;
-
-        //inner button
-        if (isHovered) {
-            g2d.setColor(new Color(114, 119, 139)); //dark gray
-        } else {
-            g2d.setColor(new Color(148, 148, 148)); //light gray
-        }
-        g2d.fillRect(x, y, buttonWidth, buttonHeight);
-
-        //outer border
-        if (isHovered) {
-            g2d.setColor(Color.WHITE); //white
-        } else {
-            g2d.setColor(Color.BLACK); //black
-        }
-
-        g2d.fillRect(x, y, buttonWidth, 2); //top line
-        g2d.fillRect(x, y + buttonHeight - 2, buttonWidth, 2); //bottom line
-        g2d.fillRect(x, y, 2, buttonHeight); //left line
-        g2d.fillRect(x + buttonWidth - 2, y, 2, buttonHeight); //right line
-
-        int thickness = 4; //thickness of shadows
-        //shadows
-        if (isHovered) {
-            //top and left shadows
-            g2d.setColor(new Color(171, 178, 209));
-            g2d.fillRect(x + 2, y + 2, buttonWidth - 4, thickness);
-            g2d.fillRect(x + 2, y + 2, thickness, buttonHeight - 4);
-
-            //bottom and right shadows
-            g2d.setColor(new Color(57, 59, 70));
-            g2d.fillRect(x + 2, y + buttonHeight - 2 - thickness, buttonWidth - 4, thickness);
-            g2d.fillRect(x + buttonWidth - 2 - thickness, y + 2, thickness, buttonHeight - 4);
-        } else {
-            //top and left shadows
-            g2d.setColor(new Color(255, 255, 255));
-            g2d.fillRect(x + 2, y + 2, buttonWidth - 4, thickness);
-            g2d.fillRect(x + 2, y + 2, thickness, buttonHeight - 4);
-
-            //right and bottom shadows
-            g2d.setColor(new Color(85, 85, 85));
-            g2d.fillRect(x + 2, y + buttonHeight - 2 - thickness, buttonWidth - 4, thickness);
-            g2d.fillRect(x + buttonWidth - 2 - thickness, y + 2, thickness, buttonHeight - 4);
-        }
-
-        //unpauses game when button is clicked
-        if (isHovered && GameMouseInput.isMouseLeftClickPressed) {
-            game.gameReset();
-            System.out.println("Player restarted play through");
-        }
-
-        //button text centering and creation
-        String text = "Play Again";
-        g2d.setFont(font);
-        g2d.setColor(new Color(50, 50, 50));
-        FontMetrics metrics = g2d.getFontMetrics(font);
-        int textX = x + (buttonWidth - metrics.stringWidth(text)) / 2;
-        int textY = y + ((buttonHeight - metrics.getHeight()) / 2) + metrics.getAscent() + 4;
-        g2d.drawString(text, textX, textY);
-    }
-
-    public void drawKeepPlayingButton(Graphics2D g2d, int x, int y, int mouseX, int mouseY) {
-        x = x - buttonWidth/2;
-        y = y - buttonHeight/2;
-
-        boolean isHovered = mouseX >= x && mouseX <= x + buttonWidth && mouseY >= y && mouseY <= y + buttonHeight;
-
-        //inner button
-        if (isHovered) {
-            g2d.setColor(new Color(114, 119, 139)); //dark gray
-        } else {
-            g2d.setColor(new Color(148, 148, 148)); //light gray
-        }
-        g2d.fillRect(x, y, buttonWidth, buttonHeight);
-
-        //outer border
-        if (isHovered) {
-            g2d.setColor(Color.WHITE); //white
-        } else {
-            g2d.setColor(Color.BLACK); //black
-        }
-
-        g2d.fillRect(x, y, buttonWidth, 2); //top line
-        g2d.fillRect(x, y + buttonHeight - 2, buttonWidth, 2); //bottom line
-        g2d.fillRect(x, y, 2, buttonHeight); //left line
-        g2d.fillRect(x + buttonWidth - 2, y, 2, buttonHeight); //right line
-
-        int thickness = 4; //thickness of shadows
-        //shadows
-        if (isHovered) {
-            //top and left shadows
-            g2d.setColor(new Color(171, 178, 209));
-            g2d.fillRect(x + 2, y + 2, buttonWidth - 4, thickness);
-            g2d.fillRect(x + 2, y + 2, thickness, buttonHeight - 4);
-
-            //bottom and right shadows
-            g2d.setColor(new Color(57, 59, 70));
-            g2d.fillRect(x + 2, y + buttonHeight - 2 - thickness, buttonWidth - 4, thickness);
-            g2d.fillRect(x + buttonWidth - 2 - thickness, y + 2, thickness, buttonHeight - 4);
-        } else {
-            //top and left shadows
-            g2d.setColor(new Color(255, 255, 255));
-            g2d.fillRect(x + 2, y + 2, buttonWidth - 4, thickness);
-            g2d.fillRect(x + 2, y + 2, thickness, buttonHeight - 4);
-
-            //right and bottom shadows
-            g2d.setColor(new Color(85, 85, 85));
-            g2d.fillRect(x + 2, y + buttonHeight - 2 - thickness, buttonWidth - 4, thickness);
-            g2d.fillRect(x + buttonWidth - 2 - thickness, y + 2, thickness, buttonHeight - 4);
-        }
-
-        //unpauses game when button is clicked
-        if (isHovered && GameMouseInput.isMouseLeftClickPressed) {
-            game.showWinMenu = false;
-            game.isGameWon = false;
-            this.setWinMenuVisible(false);
-
-            GameMouseInput.isMouseLeftClickPressed = false;
-            GameMouseInput.reset();
-            System.out.println("Player chose to continue playthrough indefinitely");
-        }
-
-        //button text centering and creation
-        String text = "Keep Playing";
-        g2d.setFont(font);
-        g2d.setColor(new Color(50, 50, 50));
-        FontMetrics metrics = g2d.getFontMetrics(font);
-        int textX = x + (buttonWidth - metrics.stringWidth(text)) / 2;
-        int textY = y + ((buttonHeight - metrics.getHeight()) / 2) + metrics.getAscent() + 4;
-        g2d.drawString(text, textX, textY);
-    }
-
+    /**
+     * Handles button logic of win menu
+     * Pre: Win menu is visible
+     * Post: An action preformed based on the button/object clicked by the player
+     */
     @Override
     public void act() {
+        if (!isVisible) {
+            return;
+        }
+        //mouse location variables
+        int mouseX = GameMouseInput.mouseX;
+        int mouseY = GameMouseInput.mouseY;
+
+        if (GameMouseInput.isMouseLeftClickPressed) {
+            //keep playing button
+            int kpx = buttonX - BUTTON_WIDTH / 2;
+            int kpy = KEEP_PLAYING_Y - BUTTON_HEIGHT / 2;
+            if (mouseX >= kpx && mouseX <= kpx + BUTTON_WIDTH && mouseY >= kpy && mouseY <= kpy + BUTTON_HEIGHT) {
+                game.showWinMenu = false; //closes win menu
+                game.isGameWon = false;
+                this.setWinMenuVisible(false);
+
+                GameMouseInput.isMouseLeftClickPressed = false;
+                GameMouseInput.reset();
+                System.out.println("Player chose to continue playthrough indefinitely");
+                return;
+            }
+
+            //exit to main menu button
+            int emx = buttonX - BUTTON_WIDTH / 2;
+            int emy = EXIT_TO_MAIN_MENU_Y - BUTTON_HEIGHT / 2;
+            if (mouseX >= emx && mouseX <= emx + BUTTON_WIDTH && mouseY >= emy && mouseY <= emy + BUTTON_HEIGHT) {
+                game.closeUpgradeMenu(); //if the upgrade menu is open, close it
+                game.unpauseGame(); //closes pause menu
+                game.gameReset();
+                game.openMainMenu();
+                System.out.println("Exited to main menu");
+                return;
+            }
+
+            //play again button
+            int pax = buttonX - BUTTON_WIDTH / 2;
+            int pay = PLAY_AGAIN_Y - BUTTON_HEIGHT / 2;
+            if (mouseX >= pax && mouseX <= pax + BUTTON_WIDTH && mouseY >= pay && mouseY <= pay + BUTTON_HEIGHT) {
+                game.gameReset();
+                System.out.println("Player restarted play through");
+                return;
+            }
+            //quit game button
+            int qx = buttonX - BUTTON_WIDTH / 2;
+            int qy = QUIT_Y - BUTTON_HEIGHT / 2;
+            if (mouseX >= qx && mouseX <= qx + BUTTON_WIDTH && mouseY >= qy && mouseY <= qy + BUTTON_HEIGHT) {
+                game.exitGame();
+                return;
+            }
+        }
+
         this.repaint(); //do not remove, very important
     }
 
-    //gets a pixel and that pixels surrounding pixels, mixes the colors together and outputs the result to make it look blurry
-    //also down and upscales to save processing power and smooths result to avoid blockiness
+    /**
+     * Blurs the background of anything behind the open menu by getting a pixel and that pixels surrounding pixels
+     * Mixes the colors together and outputs the result to make it look blurry
+     * Also down and upscales to save processing power and smooths result to avoid blockiness
+     * Pre: Win menu is visible
+     * Post: A blurred background
+     * @param targetCanvas The canvas that is to be blurred
+     * @return The blurred canvas
+     */
     private BufferedImage generateBlurredImage(Component targetCanvas) {
         int w = targetCanvas.getWidth();
         int h = targetCanvas.getHeight();

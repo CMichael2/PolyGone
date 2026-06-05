@@ -244,12 +244,12 @@ public class PolyGone extends Game {
 
             // Clear the pending save tracking variable so it doesn't run again
             this.pendingSaveData = null;
-            System.out.println("Save data successfully injected into newly initialized objects!");
+            System.out.println("Save loaded");
         } else {
             if (player != null) {
                 gameReset();
             }
-            System.out.println("No save data found. Starting a completely fresh run.");
+            System.out.println("New game started");
         }
 
         GameMouseInput.isMouseLeftClickPressed = false;
@@ -342,14 +342,21 @@ public class PolyGone extends Game {
         if (isKeyPressed(KeyEvent.VK_ESCAPE)) {
             //only toggles on first frame of being pressed
             if (!pauseMenuKeyWasPressedLastFrame) {
-                if (!showPauseMenu && showUpgradeMenu) {
-                    long now = System.currentTimeMillis();
-                    long timeSpentInUpgradeSoFar = now - upgradeMenuOpenTime;
-                    for (Bullets b : bulletsList) {
-                        b.bulletTimeOfFire += timeSpentInUpgradeSoFar;
+                if (showPauseMenu) {
+                    if (pauseMenu != null) {
+                        if (pauseMenu.pauseMenuState == 2)
+                        pauseMenu.pauseMenuState = 3;
                     }
+                } else {
+                    if (!showPauseMenu && showUpgradeMenu) {
+                        long now = System.currentTimeMillis();
+                        long timeSpentInUpgradeSoFar = now - upgradeMenuOpenTime;
+                        for (Bullets b : bulletsList) {
+                            b.bulletTimeOfFire += timeSpentInUpgradeSoFar;
+                        }
+                    }
+                    pauseGame(true);
                 }
-                pauseGame(!showPauseMenu);
                 pauseMenuKeyWasPressedLastFrame = true; //prevents the toggle from activating again until the key is released
             }
         } else {
@@ -550,6 +557,7 @@ public class PolyGone extends Game {
             if (winMenu != null) {
                 winMenu.setWinMenuVisible(true);
             }
+            System.out.println("Player has won game");
         }
     }
 

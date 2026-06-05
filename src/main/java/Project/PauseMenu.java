@@ -19,12 +19,15 @@ public class PauseMenu extends GameObject {
 
     private Font font = new Font("Consolas", Font.BOLD, 30);
     public boolean isPauseMenuVisible = false;
+    public int pauseMenuState = 0;
 
     private final int buttonWidth = 350;
     private final int buttonHeight = 50;
-    private final int RESUME_Y = 550;
-    private final int SETTINGS_Y = 625;
-    private final int SQ_Y = 700;
+
+    private final double ANIMATION_SPEED = 0.1;
+    private double animationSaveY = 1200;
+    private int pauseY = 400;
+    private int currentY;
 
     public PauseMenu(PolyGone game, Player player, MainMenu mainMenu) {
         this.player = player;
@@ -41,6 +44,9 @@ public class PauseMenu extends GameObject {
         System.out.println("Player paused game");
         if (visible) {
             this.needsBlurRefresh = true; //tells game to blur background
+            pauseMenuState = 1;
+            this.animationSaveY = this.getHeight()+350;
+            this.pauseY = 550;
         } else {
             //avoids blurring when pause menu not open
             if (blurredSnapshot != null) {
@@ -73,12 +79,15 @@ public class PauseMenu extends GameObject {
             g2d.setColor(new Color(0, 0, 0, 180));
             g2d.fillRect(0, 0, this.getWidth(), this.getHeight());
         }
+        if (pauseMenuState != 0) {
+            currentY = (int) animationSaveY;
 
-        drawSaveAndQuitButton(g2d, this.getWidth()/2, SQ_Y, GameMouseInput.mouseX, GameMouseInput.mouseY);
+            drawResumeButton(g2d, this.getWidth() / 2, currentY, GameMouseInput.mouseX, GameMouseInput.mouseY);
 
-        drawResumeButton(g2d, this.getWidth()/2, RESUME_Y, GameMouseInput.mouseX, GameMouseInput.mouseY);
+            drawSettingsButton(g2d, this.getWidth() / 2, currentY + 75, GameMouseInput.mouseX, GameMouseInput.mouseY);
 
-        drawSettingsButton(g2d, this.getWidth()/2, SETTINGS_Y, GameMouseInput.mouseX, GameMouseInput.mouseY);
+            drawSaveAndQuitButton(g2d, this.getWidth() / 2, currentY + 150, GameMouseInput.mouseX, GameMouseInput.mouseY);
+        }
     }
 
     public void drawSaveAndQuitButton(Graphics2D g2d, int x, int y, int mouseX, int mouseY) {
@@ -271,22 +280,22 @@ public class PauseMenu extends GameObject {
 
         if (GameMouseInput.isMouseLeftClickPressed) {
             int rx = midX - buttonWidth / 2;
-            int ry = RESUME_Y - buttonHeight / 2;
+            int ry = (currentY) - buttonHeight / 2;
             if (mouseX >= rx && mouseX <= rx + buttonWidth && mouseY >= ry && mouseY <= ry + buttonHeight) {
-                game.unpauseGame();
+                pauseMenuState = 3;
                 System.out.println("Player unpaused game");
                 return;
             }
 
             int ex = midX - buttonWidth / 2;
-            int ey = SETTINGS_Y - buttonHeight / 2;
+            int ey = (currentY + 75) - buttonHeight / 2;
             if (mouseX >= ex && mouseX <= ex + buttonWidth && mouseY >= ey && mouseY <= ey + buttonHeight) {
                 System.out.println("Player opened settings menu");
                 return;
             }
 
             int emx = midX - buttonWidth / 2;
-            int emy = SQ_Y - buttonHeight / 2;
+            int emy = (currentY + 150) - buttonHeight / 2;
             if (mouseX >= emx && mouseX <= emx + buttonWidth && mouseY >= emy && mouseY <= emy + buttonHeight) {
                 saveGame.saveData(game, player, mainMenu);
                 game.closeUpgradeMenu();
@@ -294,8 +303,26 @@ public class PauseMenu extends GameObject {
                 game.gameReset();
                 game.openMainMenu();
                 mainMenu.selectedSave = 0;
+                mainMenu.saveMenuState = 0;
                 System.out.println("Exited to main menu");
                 return;
+            }
+        }
+
+        if (pauseMenuState == 1) { //slide up
+            animationSaveY -= (animationSaveY - pauseY) * ANIMATION_SPEED; //moves save screen
+            if (animationSaveY - pauseY < 1) { //snapping
+                animationSaveY = pauseY;
+                pauseMenuState = 2; //state 2 means visible
+            }
+        }
+        else if (pauseMenuState == 3) { //slide down
+            double screenBottom = this.getHeight() + 50;
+            animationSaveY += (screenBottom - animationSaveY) * ANIMATION_SPEED + 1; //moves save screen
+            if (animationSaveY >= screenBottom) { //snapping
+                animationSaveY = screenBottom;
+                pauseMenuState = 0; //state 0 means hidden
+                game.unpauseGame();
             }
         }
         this.repaint(); //do not remove, very important
