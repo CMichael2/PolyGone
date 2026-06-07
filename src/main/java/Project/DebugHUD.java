@@ -64,7 +64,7 @@ public class DebugHUD extends GameObject {
         g2d.setColor(Color.WHITE); //sets text color
 
         //location relative to debug hud bounding box location and aligned with right side
-        drawRightAlignedString(g2d, "Player xy: " + player.getX() + ", " + player.getY(), screenRightEdge, getHeight()-10, FONT);
+        drawRightAlignedString(g2d, "Player xy: " + player.getX() + ", " + player.getY(), screenRightEdge, getHeight()-5, FONT);
 
         int enemyCount = enemyManager.enemiesList.size();
         drawRightAlignedString(g2d, "Enemy count: " + enemyCount, screenRightEdge, getHeight()-25, FONT);

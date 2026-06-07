@@ -14,7 +14,6 @@ public class MainMenu extends GameObject {
     private final Font FONT = new Font("Consolas", Font.BOLD, 40);
 
     private boolean isVisible = false; //is this game object visible?
-    public int saveMenuState = 0; //0 is closed, 1 is opening, 2 is open, 3 is closing
 
     //main menu button variables/class fields
     private final int BUTTON_WIDTH = 450;
@@ -47,13 +46,20 @@ public class MainMenu extends GameObject {
     };
 
     //animation variables
+    public int saveMenuState = 0; //0 is closed, 1 is opening, 2 is open, 3 is closing
     private double animationSaveY = 1200; //starting position of the save screen animation
     private final double ANIMATION_SPEED = 0.1; //speed of save screen animation, decrease to slow down animation
+    public int mainMenuState = 1; //0 is closed, 1 is opening, 2 is open, 3 is closing
+    private double currentButtonX;
+    private final int TARGET_OPEN_X; //default position of main menu buttons
+    private final int OFF_SCREEN_LEFT_X; //animation starting position
+    private float bgAlpha = 1.0f; //1 is visible, 0 is hidden
+    private final float FADE_SPEED = 0.05f;
 
     /**
      * Constructor that initializes the game object and fields
      * Pre: Game is initialized from the main method in PolyGone.java
-     * Post: Sets the size of this game object to fill the screen, sets the X alignment of the main menu buttons
+     * Post: Sets the size of this game object to fill the screen, sets the X alignment of the main menu buttons, defines animation variables
      * @param game Parameter from PolyGone
      * @param player Parameter from Player
      */
@@ -62,6 +68,11 @@ public class MainMenu extends GameObject {
         this.game = game;
         this.setBounds(0, 0, game.getWidth(), game.getHeight()); //sets gui size and location
         buttonX = this.getWidth()/6;
+
+        //defines the values of the animation positions
+        TARGET_OPEN_X = this.getWidth() / 6;
+        OFF_SCREEN_LEFT_X = -(BUTTON_WIDTH / 2) - 50;
+        currentButtonX = OFF_SCREEN_LEFT_X;
     }
 
     /**
@@ -72,6 +83,13 @@ public class MainMenu extends GameObject {
      */
     public void setMainMenuVisible(boolean visible) {
         this.isVisible = visible;
+        if (visible) {
+            this.mainMenuState = 1; //begins animation
+            this.currentButtonX = OFF_SCREEN_LEFT_X;
+            this.bgAlpha = 1.0f; //resets transparency
+        } else {
+            this.mainMenuState = 0;
+        }
         GameMouseInput.isMouseLeftClickPressed = false;
         GameMouseInput.reset();
     }
@@ -89,16 +107,21 @@ public class MainMenu extends GameObject {
         Graphics2D g2d = (Graphics2D) g; //cast to 2d graphics for antialiasing
         g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
+        Composite originalComposite = g2d.getComposite(); //sets original composite
+        g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, bgAlpha)); //updates composite for fading background
+
         //background color and size
         g2d.setColor(new Color(27, 26, 26));
         g2d.fillRect(0, 0, this.getWidth(), this.getHeight());
 
+        g2d.setComposite(originalComposite); //resets composite so buttons are not faded
+
         //main menu buttons
-        drawMainMenuButtons(g2d, buttonX, NEW_GAME_Y, GameMouseInput.mouseX, GameMouseInput.mouseY, "New Game");
-        drawMainMenuButtons(g2d, buttonX, CONTINUE_Y, GameMouseInput.mouseX, GameMouseInput.mouseY, "Resume From Save");
-        drawMainMenuButtons(g2d, buttonX, SETTINGS_Y, GameMouseInput.mouseX, GameMouseInput.mouseY, "Settings");
-        drawMainMenuButtons(g2d, buttonX, CREDITS_Y, GameMouseInput.mouseX, GameMouseInput.mouseY, "Credits");
-        drawMainMenuButtons(g2d, buttonX, QUIT_Y, GameMouseInput.mouseX, GameMouseInput.mouseY, "Quit");
+        drawMainMenuButtons(g2d, (int)currentButtonX, NEW_GAME_Y, GameMouseInput.mouseX, GameMouseInput.mouseY, "New Game");
+        drawMainMenuButtons(g2d, (int)currentButtonX, CONTINUE_Y, GameMouseInput.mouseX, GameMouseInput.mouseY, "Resume From Save");
+        drawMainMenuButtons(g2d, (int)currentButtonX, SETTINGS_Y, GameMouseInput.mouseX, GameMouseInput.mouseY, "Settings");
+        drawMainMenuButtons(g2d, (int)currentButtonX, CREDITS_Y, GameMouseInput.mouseX, GameMouseInput.mouseY, "Credits");
+        drawMainMenuButtons(g2d, (int)currentButtonX, QUIT_Y, GameMouseInput.mouseX, GameMouseInput.mouseY, "Quit");
 
         //only appears once continue from save button is clicked
         if (saveMenuState != 0) {
@@ -336,7 +359,7 @@ public class MainMenu extends GameObject {
 
         if (GameMouseInput.isMouseLeftClickPressed) {
             //new game button
-            int nx = buttonX - BUTTON_WIDTH / 2;
+            int nx = (int)currentButtonX - BUTTON_WIDTH / 2;
             int ny = NEW_GAME_Y - BUTTON_HEIGHT / 2;
             if (mouseX >= nx && mouseX <= nx + BUTTON_WIDTH && mouseY >= ny && mouseY <= ny + BUTTON_HEIGHT) {
                 boolean allSlotsFull = false;
@@ -364,14 +387,16 @@ public class MainMenu extends GameObject {
                 game.saveSlotNumber = unfilledSaveSlot; //selects the save slot to be used for the new game
                 if (saveMenuState == 2) { //if the save screen menu is open, close it before closing the main menu
                     saveMenuState = 3;
+                    this.mainMenuState = 3;
                 } else if (saveMenuState == 0) {
-                    game.closeMainMenu();
+                    this.mainMenuState = 3;
                 }
+                game.prepareGameSession();
                 System.out.println("Player began new playthrough");
                 return;
             }
             //continue from save button
-            int cx = buttonX - BUTTON_WIDTH / 2;
+            int cx = (int)currentButtonX - BUTTON_WIDTH / 2;
             int cy = CONTINUE_Y - BUTTON_HEIGHT / 2;
             if (mouseX >= cx && mouseX <= cx + BUTTON_WIDTH && mouseY >= cy && mouseY <= cy + BUTTON_HEIGHT) {
                 if (saveMenuState == 0) {
@@ -380,6 +405,7 @@ public class MainMenu extends GameObject {
                     animationSaveY = this.getHeight() + 350;
                 } else if (saveMenuState == 2) { //if it is open it closes
                     saveMenuState = 3; //slides down
+                    selectedSave = 0;
                 }
 
                 GameMouseInput.isMouseLeftClickPressed = false; //reset mouse inputs
@@ -387,22 +413,23 @@ public class MainMenu extends GameObject {
                 System.out.println("Player has opened save selection screen");
                 return;
             }
-            //settings button (not coded yet)
-            int sx = buttonX - BUTTON_WIDTH / 2;
+            //settings button
+            int sx = (int)currentButtonX - BUTTON_WIDTH / 2;
             int sy = SETTINGS_Y - BUTTON_HEIGHT / 2;
             if (mouseX >= sx && mouseX <= sx + BUTTON_WIDTH && mouseY >= sy && mouseY <= sy + BUTTON_HEIGHT) {
+                game.openSettingsMenu();
                 System.out.println("Player has opened settings menu");
                 return;
             }
             //credits button (not coded yet)
-            int crx = buttonX - BUTTON_WIDTH / 2;
+            int crx = (int)currentButtonX - BUTTON_WIDTH / 2;
             int cry = CREDITS_Y - BUTTON_HEIGHT / 2;
             if (mouseX >= crx && mouseX <= crx + BUTTON_WIDTH && mouseY >= cry && mouseY <= cry + BUTTON_HEIGHT) {
                 System.out.println("Player has opened credits screen");
                 return;
             }
             //quit/exit button
-            int ex = buttonX - BUTTON_WIDTH / 2;
+            int ex = (int)currentButtonX - BUTTON_WIDTH / 2;
             int ey = QUIT_Y - BUTTON_HEIGHT / 2;
             if (mouseX >= ex && mouseX <= ex + BUTTON_WIDTH && mouseY >= ey && mouseY <= ey + BUTTON_HEIGHT) {
                 game.exitGame();
@@ -469,9 +496,12 @@ public class MainMenu extends GameObject {
                         game.saveSlotNumber = selectedSave;
 
                         saveMenuState = 3; //slides down save screen
+                        mainMenuState = 3;
+                        game.prepareGameSession();
                         System.out.println("Save cached. Closing menu to initialize player...");
                     } else {
                         System.out.println("Could not launch game: Save slot file is missing or corrupted");
+                        selectedSave = 0;
                     }
 
                     GameMouseInput.isMouseLeftClickPressed = false;
@@ -506,8 +536,10 @@ public class MainMenu extends GameObject {
                 }
             }
         }
-        openSaveScreen();
+        animateMainMenuIn();
+        animateMainMenuOut();
 
+        openSaveScreen();
         closeSaveScreen();
 
         this.repaint(); //do not remove, very important
@@ -601,11 +633,38 @@ public class MainMenu extends GameObject {
         if (saveMenuState == 3) { //slide down
             double screenBottom = this.getHeight() + 450;
             animationSaveY += (screenBottom - animationSaveY) * ANIMATION_SPEED + 1; //moves save screen
-            if (animationSaveY >= screenBottom) { //snapping
+
+            if (animationSaveY >= screenBottom) {
                 animationSaveY = screenBottom;
-                saveMenuState = 0; //state 0 means hidden
-                game.closeMainMenu();
+                saveMenuState = 0; //hidden
             }
+        }
+    }
+
+    private void animateMainMenuIn() {
+        if (mainMenuState == 1) { //opening
+            currentButtonX += (TARGET_OPEN_X - currentButtonX) * ANIMATION_SPEED;
+            if (TARGET_OPEN_X - currentButtonX < 1) {
+                currentButtonX = TARGET_OPEN_X;
+                mainMenuState = 2; //open
+            }
+        }
+    }
+
+    private void animateMainMenuOut() {
+        if (mainMenuState == 3) { //closing
+            bgAlpha -= FADE_SPEED; //fades background
+            if (bgAlpha < 0.0f) {
+                bgAlpha = 0.0f;
+            }
+
+            currentButtonX += (OFF_SCREEN_LEFT_X - currentButtonX) * ANIMATION_SPEED - 1;
+            if (currentButtonX <= OFF_SCREEN_LEFT_X) {
+                currentButtonX = OFF_SCREEN_LEFT_X;
+                mainMenuState = 0; //closed
+                game.activatePlayingState();
+            }
+
         }
     }
 }

@@ -13,12 +13,12 @@ public class EnemyManager {
     //class enemy variables
     //placed here because enemies are spawned by the main game and follow code in enemies class
     public ArrayList<Enemies> enemiesList = new ArrayList<>();
-    private double enemySpeed = 4.0; //used to determine enemy speed, 33% of default player speed
+    private double enemySpeed = 4.0; //used to determine enemy speed, 66% of default player speed
     private long lastEnemySpawnTime = 0;
-    public int baseEnemySpawnRate = 2000;
-    public int enemySpawnRate = 2000; //used to determine the enemy spawn rate in milliseconds
+    public int baseEnemySpawnRate = 1500;
+    public int enemySpawnRate = 1500; //used to determine the enemy spawn rate in milliseconds
     private boolean isFirstEnemy = true; //used to begin spawning of enemies
-    public double enemyDroppedXp = 300.0;
+    public double enemyDroppedXp = 1.0;
 
     /**
      * Constructor that initializes the game object and its attributes

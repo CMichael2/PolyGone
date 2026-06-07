@@ -9,5 +9,6 @@ public enum GameState {
     PAUSED,
     UPGRADE_MENU,
     WIN_SCREEN,
-    DEATH_SCREEN
+    DEATH_SCREEN,
+    SETTINGS_MENU
 }

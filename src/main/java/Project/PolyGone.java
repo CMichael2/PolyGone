@@ -21,6 +21,10 @@ public class PolyGone extends Game {
 
     Player player; //creates player variable that follows the code in Player class
 
+    public boolean isVSyncEnabled = false;
+    private int monitorRefreshRate = 60;
+    private int targetDelay = 16; //60Hz
+
     //gui and hud variables/objects
     private GUI gameUI; //object for referencing gui class
 
@@ -29,8 +33,11 @@ public class PolyGone extends Game {
     private long pauseMenuOpenTime = 0;
     private GameState stateBeforePause = GameState.PLAYING;
 
+    private SettingsMenu settingsMenu;
+    private GameState previousState;
+
     private DebugHUD debugHUD;
-    private boolean showDebugHUD = false;
+    public boolean showDebugHUD = false;
     private boolean debugKeyWasPressedLastFrame = false;
 
     private UpgradeMenu upgradeMenu;
@@ -52,7 +59,6 @@ public class PolyGone extends Game {
     public SaveGame pendingSaveData = null;
 
     private GameState currentState = GameState.MAIN_MENU;
-
     public GameState getCurrentState() {
         return this.currentState;
     }
@@ -79,7 +85,20 @@ public class PolyGone extends Game {
 
     @Override
     public void setup() {
-        setDelay(16); //tick rate (determines how often to run the act() method, currently set to approximately 60Hz screens)
+        try {
+            GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+            DisplayMode mode = ge.getDefaultScreenDevice().getDisplayMode();
+            int refreshRate = mode.getRefreshRate();
+
+            //fall back to 60
+            if (refreshRate != DisplayMode.REFRESH_RATE_UNKNOWN) {
+                monitorRefreshRate = refreshRate;
+            }
+        } catch (Exception e) {
+            monitorRefreshRate = 60;
+        }
+
+        setVSync(true);
 
         this.addWindowFocusListener(new java.awt.event.WindowFocusListener() {
             @Override
@@ -112,6 +131,9 @@ public class PolyGone extends Game {
         mainMenu = new MainMenu(this, player);
         add(mainMenu);
 
+        settingsMenu = new SettingsMenu(this);
+        add(settingsMenu);
+
         //moves game objects to front or back
         this.getContentPane().setComponentZOrder(mainMenu, 0);
 
@@ -125,6 +147,12 @@ public class PolyGone extends Game {
         openDebugHUD();
 
         switch (currentState) {
+            case SETTINGS_MENU:
+                if (settingsMenu != null) {
+                    settingsMenu.act();
+                }
+                return;
+
             case MAIN_MENU:
                 if (mainMenu != null) {
                     mainMenu.act();
@@ -180,17 +208,32 @@ public class PolyGone extends Game {
         GameMouseInput.reset();
     }
 
-    public void closeMainMenu() {
-        this.currentState = GameState.PLAYING;
-
-        if (mainMenu != null) {
-            mainMenu.setMainMenuVisible(false);
+    public void setVSync(boolean enable) {
+        this.isVSyncEnabled = enable;
+        System.out.println("VSync changed to: " + isVSyncEnabled + " (" + monitorRefreshRate + "Hz)");
+        if (isVSyncEnabled) {
+            //match delay to refresh rate
+            targetDelay = 1000 / monitorRefreshRate;
         }
+        setDelay(targetDelay);
+    }
 
+    public void openMainMenu() {
+        this.currentState = GameState.MAIN_MENU;
+        if (mainMenu != null) mainMenu.setMainMenuVisible(true);
+        this.getContentPane().setComponentZOrder(settingsMenu, 0);
+        this.getContentPane().setComponentZOrder(mainMenu, 1);
+        if (debugHUD != null) {
+            this.getContentPane().setComponentZOrder(debugHUD, 2);
+        }
+        GameMouseInput.reset();
+        this.repaint();
+    }
+
+    public void prepareGameSession() {
         if (player == null && gameUI == null) {
             enemyManager = new EnemyManager(this, player);
 
-            // creates player game object
             player = new Player(this, enemyManager);
             add(player);
 
@@ -201,13 +244,14 @@ public class PolyGone extends Game {
             if (winMenu != null) winMenu.player = player;
             if (deathMenu != null) deathMenu.player = player;
 
-            //creates gui game object
             gameUI = new GUI(this, player);
             add(gameUI);
 
             if (debugHUD == null) {
                 debugHUD = new DebugHUD(this, player, enemyManager);
                 add(debugHUD);
+
+                debugHUD.setDebugHUDVisible(showDebugHUD);
             }
             if (upgradeMenu == null) {
                 upgradeMenu = new UpgradeMenu(this, player, debugHUD, enemyManager);
@@ -221,7 +265,6 @@ public class PolyGone extends Game {
                 winMenu = new WinMenu(this, player, mainMenu, enemyManager);
                 add(winMenu);
             }
-
             if (deathMenu == null) {
                 deathMenu = new DeathMenu(this, player, mainMenu, enemyManager);
                 add(deathMenu);
@@ -229,12 +272,13 @@ public class PolyGone extends Game {
 
             this.getContentPane().setComponentZOrder(mainMenu, 0);
             this.getContentPane().setComponentZOrder(debugHUD, 1);
-            this.getContentPane().setComponentZOrder(pauseMenu, 2);
-            this.getContentPane().setComponentZOrder(deathMenu, 3);
-            this.getContentPane().setComponentZOrder(winMenu, 4);
-            this.getContentPane().setComponentZOrder(upgradeMenu, 5);
-            this.getContentPane().setComponentZOrder(gameUI, 6);
-            this.getContentPane().setComponentZOrder(player, 7);
+            this.getContentPane().setComponentZOrder(settingsMenu, 2);
+            this.getContentPane().setComponentZOrder(pauseMenu, 3);
+            this.getContentPane().setComponentZOrder(deathMenu, 4);
+            this.getContentPane().setComponentZOrder(winMenu, 5);
+            this.getContentPane().setComponentZOrder(upgradeMenu, 6);
+            this.getContentPane().setComponentZOrder(gameUI, 7);
+            this.getContentPane().setComponentZOrder(player, 8);
         } else {
             player.setVisible(true);
             gameUI.setVisible(true);
@@ -245,19 +289,74 @@ public class PolyGone extends Game {
 
         if (this.pendingSaveData != null) {
             this.pendingSaveData.applyDataToGame(this, this.player, mainMenu, enemyManager);
-
-
             this.pendingSaveData = null;
-            System.out.println("Save loaded");
+            System.out.println("Save loaded in background");
         } else {
             if (player != null) {
                 gameReset();
             }
             System.out.println("New game started");
         }
+    }
+
+    public void activatePlayingState() {
+        this.currentState = GameState.PLAYING;
+
+        if (mainMenu != null) {
+            mainMenu.setMainMenuVisible(false);
+        }
 
         GameMouseInput.isMouseLeftClickPressed = false;
         GameMouseInput.reset();
+    }
+
+    public void openSettingsMenu() {
+        previousState = currentState;
+        this.currentState = GameState.SETTINGS_MENU;
+        if (settingsMenu != null) {
+            settingsMenu.setSettingsMenuVisible(true);
+        }
+        GameMouseInput.reset();
+        GameMouseInput.isMouseLeftClickPressed = false;
+        this.repaint();
+    }
+
+    public void closeSettingsMenu() {
+        this.currentState = previousState;
+        if (settingsMenu != null) {
+            settingsMenu.setSettingsMenuVisible(false);
+        }
+        if (previousState == GameState.PAUSED) {
+            pauseMenu.setPauseMenuVisible(true);
+        }
+        GameMouseInput.isMouseLeftClickPressed = false;
+        GameMouseInput.reset();
+    }
+
+    private void openPauseMenu() {
+        if (isKeyPressed(KeyEvent.VK_ESCAPE)) {
+            //only toggles on first frame of being pressed
+            if (!pauseMenuKeyWasPressedLastFrame) {
+                if (currentState == GameState.PAUSED) {
+                    if (pauseMenu != null) {
+                        if (pauseMenu.pauseMenuState == 2)
+                            pauseMenu.pauseMenuState = 3;
+                    }
+                } else {
+                    if (currentState != GameState.PAUSED && currentState == GameState.UPGRADE_MENU) {
+                        long now = System.currentTimeMillis();
+                        long timeSpentInUpgradeSoFar = now - upgradeMenuOpenTime;
+                        for (Bullets b : Bullets.getBulletsList()) {
+                            b.bulletTimeOfFire += timeSpentInUpgradeSoFar;
+                        }
+                    }
+                    pauseGame(true);
+                }
+                pauseMenuKeyWasPressedLastFrame = true; //prevents the toggle from activating again until the key is released
+            }
+        } else {
+            pauseMenuKeyWasPressedLastFrame = false;
+        }
     }
 
     private void pauseGame(boolean shouldPause) {
@@ -304,13 +403,6 @@ public class PolyGone extends Game {
         GameMouseInput.reset();
     }
 
-    public void openMainMenu() {
-        this.currentState = GameState.MAIN_MENU;
-        if (mainMenu != null) mainMenu.setMainMenuVisible(true);
-        GameMouseInput.reset();
-        this.repaint();
-    }
-
     public void openUpgradeMenu() {
         this.currentState = GameState.UPGRADE_MENU;
         this.upgradeMenuOpenTime = System.currentTimeMillis();
@@ -352,30 +444,12 @@ public class PolyGone extends Game {
         }
     }
 
-    private void openPauseMenu() {
-        if (isKeyPressed(KeyEvent.VK_ESCAPE)) {
-            //only toggles on first frame of being pressed
-            if (!pauseMenuKeyWasPressedLastFrame) {
-                if (currentState == GameState.PAUSED) {
-                    if (pauseMenu != null) {
-                        if (pauseMenu.pauseMenuState == 2)
-                            pauseMenu.pauseMenuState = 3;
-                    }
-                } else {
-                    if (currentState != GameState.PAUSED && currentState == GameState.UPGRADE_MENU) {
-                        long now = System.currentTimeMillis();
-                        long timeSpentInUpgradeSoFar = now - upgradeMenuOpenTime;
-                        for (Bullets b : Bullets.getBulletsList()) {
-                            b.bulletTimeOfFire += timeSpentInUpgradeSoFar;
-                        }
-                    }
-                    pauseGame(true);
-                }
-                pauseMenuKeyWasPressedLastFrame = true; //prevents the toggle from activating again until the key is released
-            }
-        } else {
-            pauseMenuKeyWasPressedLastFrame = false;
+    public void toggleDebugHUD() {
+        showDebugHUD = !showDebugHUD;
+        if (debugHUD != null) {
+            debugHUD.setDebugHUDVisible(showDebugHUD);
         }
+        System.out.println("Debug HUD toggled via menu: " + showDebugHUD);
     }
 
     public void gameLost() {

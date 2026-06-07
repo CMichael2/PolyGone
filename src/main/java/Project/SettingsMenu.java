@@ -7,48 +7,40 @@ import java.awt.image.ConvolveOp; //used to scale up and down images
 import java.awt.image.Kernel; //a matrix used for math
 import java.io.IOException;
 
-public class PauseMenu extends GameObject {
+public class SettingsMenu extends GameObject {
 
-    Player player; //reference to object
     PolyGone game;
-    SaveGame saveGame;
-    MainMenu mainMenu;
-    EnemyManager enemyManager;
 
     private BufferedImage blurredSnapshot = null;
     private boolean needsBlurRefresh = false; //generates a new blur asset?
 
     private Font font = new Font("Consolas", Font.BOLD, 40);
-    public boolean isPauseMenuVisible = false;
-    public int pauseMenuState = 0;
+    public boolean isSettingsMenuVisible = false;
+    public int settingsMenuState = 0;
 
     private final int buttonWidth = 450;
     private final int buttonHeight = 70;
 
     private final double ANIMATION_SPEED = 0.1;
     private double animationSaveY = 1200;
-    private int pauseY = 600;
+    private int settingsY = 600;
     private int currentY;
 
-    public PauseMenu(PolyGone game, Player player, MainMenu mainMenu, EnemyManager enemyManager) {
-        this.player = player;
+    public SettingsMenu(PolyGone game) {
         this.game = game;
-        this.saveGame = new SaveGame();
-        this.mainMenu = mainMenu;
-        this.enemyManager = enemyManager;
         this.setBounds(0, 0, game.getWidth(), game.getHeight()); //sets gui size and location
     }
 
-    public void setPauseMenuVisible(boolean visible) {
+    public void setSettingsMenuVisible(boolean visible) {
         GameMouseInput.isMouseLeftClickPressed = false;
         GameMouseInput.reset();
-        this.isPauseMenuVisible = visible;
+        this.isSettingsMenuVisible = visible;
         System.out.println("Player paused game");
         if (visible) {
             this.needsBlurRefresh = true; //tells game to blur background
-            pauseMenuState = 1;
+            settingsMenuState = 1;
             this.animationSaveY = this.getHeight()+350;
-            this.pauseY = 550;
+            this.settingsY = 550;
         } else {
             //avoids blurring when pause menu not open
             if (blurredSnapshot != null) {
@@ -60,7 +52,7 @@ public class PauseMenu extends GameObject {
 
     @Override
     public void paint(Graphics g) {
-        if (!isPauseMenuVisible) return; //determines if it should be drawn
+        if (!isSettingsMenuVisible) return; //determines if it should be drawn
 
         Graphics2D g2d = (Graphics2D) g; //cast to 2d graphics for antialiasing
         g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
@@ -81,12 +73,12 @@ public class PauseMenu extends GameObject {
             g2d.setColor(new Color(0, 0, 0, 180));
             g2d.fillRect(0, 0, this.getWidth(), this.getHeight());
         }
-        if (pauseMenuState != 0) {
+        if (settingsMenuState != 0) {
             currentY = (int) animationSaveY;
 
-            drawButton(g2d, this.getWidth() / 2, currentY, GameMouseInput.mouseX, GameMouseInput.mouseY, "Resume");
-            drawButton(g2d, this.getWidth() / 2,  currentY + 90, GameMouseInput.mouseX, GameMouseInput.mouseY, "Settings");
-            drawButton(g2d, this.getWidth() / 2, currentY + 180, GameMouseInput.mouseX, GameMouseInput.mouseY, "Save & Quit");
+            drawButton(g2d, this.getWidth() / 2, currentY, GameMouseInput.mouseX, GameMouseInput.mouseY, "Back");
+            drawButton(g2d, this.getWidth() / 2,  currentY + 90, GameMouseInput.mouseX, GameMouseInput.mouseY, "V-Sync: " + game.isVSyncEnabled);
+            drawButton(g2d, this.getWidth() / 2, currentY + 180, GameMouseInput.mouseX, GameMouseInput.mouseY, "Show DebugHUD: " + game.showDebugHUD);
         }
     }
 
@@ -151,7 +143,7 @@ public class PauseMenu extends GameObject {
 
     @Override
     public void act() throws IOException {
-        if (!isPauseMenuVisible) return;
+        if (!isSettingsMenuVisible) return;
         int midX = this.getWidth() / 2;
 
         int mouseX = GameMouseInput.mouseX;
@@ -163,64 +155,54 @@ public class PauseMenu extends GameObject {
             if (mouseX >= rx && mouseX <= rx + buttonWidth && mouseY >= ry && mouseY <= ry + buttonHeight) {
                 GameMouseInput.reset();
                 GameMouseInput.isMouseLeftClickPressed = false;
-                pauseMenuState = 3;
-                System.out.println("Player unpaused game");
+                settingsMenuState = 3;
+                System.out.println("Player exited settings");
                 return;
             }
 
             int ex = midX - buttonWidth / 2;
             int ey = (currentY + 90) - buttonHeight / 2;
             if (mouseX >= ex && mouseX <= ex + buttonWidth && mouseY >= ey && mouseY <= ey + buttonHeight) {
-                isPauseMenuVisible = false;
-                game.openSettingsMenu();
-                closePauseMenu();
+                game.setVSync(!game.isVSyncEnabled);
                 GameMouseInput.reset();
                 GameMouseInput.isMouseLeftClickPressed = false;
-                System.out.println("Player opened settings menu");
                 return;
             }
 
             int emx = midX - buttonWidth / 2;
             int emy = (currentY + 180) - buttonHeight / 2;
             if (mouseX >= emx && mouseX <= emx + buttonWidth && mouseY >= emy && mouseY <= emy + buttonHeight) {
+                game.toggleDebugHUD();
                 GameMouseInput.reset();
                 GameMouseInput.isMouseLeftClickPressed = false;
-                saveGame.saveData(game, player, mainMenu, enemyManager);
-                game.closeUpgradeMenu();
-                game.unpauseGame();
-                game.gameReset();
-                game.openMainMenu();
-                mainMenu.selectedSave = 0;
-                mainMenu.saveMenuState = 0;
-                System.out.println("Exited to main menu");
                 return;
             }
         }
-        openPauseMenu();
+        openSettingsMenu();
 
-        closePauseMenu();
+        closeSettingsMenu();
 
         this.repaint(); //do not remove, very important
     }
 
-    public void openPauseMenu() {
-        if (pauseMenuState == 1) { //slide up
-            animationSaveY -= (animationSaveY - pauseY) * ANIMATION_SPEED; //moves save screen
-            if (animationSaveY - pauseY < 1) { //snapping
-                animationSaveY = pauseY;
-                pauseMenuState = 2; //state 2 means visible
+    public void openSettingsMenu() {
+        if (settingsMenuState == 1) { //slide up
+            animationSaveY -= (animationSaveY - settingsY) * ANIMATION_SPEED; //moves save screen
+            if (animationSaveY - settingsY < 1) { //snapping
+                animationSaveY = settingsY;
+                settingsMenuState = 2; //state 2 means visible
             }
         }
     }
 
-    public void closePauseMenu() {
-        if (pauseMenuState == 3) { //slide down
+    public void closeSettingsMenu() {
+        if (settingsMenuState == 3) { //slide down
             double screenBottom = this.getHeight() + 50;
             animationSaveY += (screenBottom - animationSaveY) * ANIMATION_SPEED + 1; //moves save screen
             if (animationSaveY >= screenBottom) { //snapping
                 animationSaveY = screenBottom;
-                pauseMenuState = 0; //state 0 means hidden
-                game.unpauseGame();
+                settingsMenuState = 0; //state 0 means hidden
+                game.closeSettingsMenu();
             }
         }
     }
@@ -245,13 +227,13 @@ public class PauseMenu extends GameObject {
         Graphics2D containerGraphics = rawSource.createGraphics();
 
         //hides pause menu overlay to prevent blurring of pause menu
-        boolean oldVisibility = this.isPauseMenuVisible;
-        this.isPauseMenuVisible = false;
+        boolean oldVisibility = this.isSettingsMenuVisible;
+        this.isSettingsMenuVisible = false;
 
         //draws the parent frame container components to the target texture
         targetCanvas.paint(containerGraphics);
 
-        this.isPauseMenuVisible = oldVisibility; //unhides pause menu overlay
+        this.isSettingsMenuVisible = oldVisibility; //unhides pause menu overlay
         containerGraphics.dispose();
 
         //downscaling of canvas/snapshot of screen for optimization, reduced number of calculations by scale factor^2

@@ -15,7 +15,7 @@ public class Player extends GameObject {
     public int playerMaxHealth = 100;
     public int playerCurrentHealth = playerMaxHealth;
 
-    public int startingPlayerLevel = 49; //starting player level
+    public int startingPlayerLevel = 0; //starting player level
     public int playerLevel = startingPlayerLevel;
     public double currentPlayerXp = 0;
     public int totalPlayerXp = 0;
@@ -55,7 +55,7 @@ public class Player extends GameObject {
         }
         currentPlayerXp = 0; //reset xp
         this.playerXPBarMaxXP = 10 + (int)((Math.pow(playerLevel, 1.8)/4.0)+0.5); //calculates new xp level up requirements
-        enemyManager.enemySpawnRate = enemyManager.baseEnemySpawnRate - (playerLevel*35);
+        enemyManager.enemySpawnRate = enemyManager.baseEnemySpawnRate - (playerLevel*25);
     }
 
     //movement for player
@@ -152,10 +152,10 @@ public class Player extends GameObject {
         }
     }
 
-    public int maxAmmo = 15; //sets max ammo
+    public int maxAmmo = 25; //sets max ammo
     public int currentAmmo = maxAmmo;
     public long lastAmmoRegenTime = 0; //do not change
-    public long ammoReloadCooldown = 3000; //sets ammo bar reload time
+    public long ammoReloadCooldown = 2000; //sets ammo bar reload time
     public boolean isReloading = false;
 
     public void updateAmmoRegen() {
