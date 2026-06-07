@@ -13,27 +13,29 @@ public class PauseMenu extends GameObject {
     PolyGone game;
     SaveGame saveGame;
     MainMenu mainMenu;
+    EnemyManager enemyManager;
 
     private BufferedImage blurredSnapshot = null;
     private boolean needsBlurRefresh = false; //generates a new blur asset?
 
-    private Font font = new Font("Consolas", Font.BOLD, 30);
+    private Font font = new Font("Consolas", Font.BOLD, 40);
     public boolean isPauseMenuVisible = false;
     public int pauseMenuState = 0;
 
-    private final int buttonWidth = 350;
-    private final int buttonHeight = 50;
+    private final int buttonWidth = 450;
+    private final int buttonHeight = 70;
 
     private final double ANIMATION_SPEED = 0.1;
     private double animationSaveY = 1200;
-    private int pauseY = 400;
+    private int pauseY = 600;
     private int currentY;
 
-    public PauseMenu(PolyGone game, Player player, MainMenu mainMenu) {
+    public PauseMenu(PolyGone game, Player player, MainMenu mainMenu, EnemyManager enemyManager) {
         this.player = player;
         this.game = game;
         this.saveGame = new SaveGame();
         this.mainMenu = mainMenu;
+        this.enemyManager = enemyManager;
         this.setBounds(0, 0, game.getWidth(), game.getHeight()); //sets gui size and location
     }
 
@@ -82,15 +84,13 @@ public class PauseMenu extends GameObject {
         if (pauseMenuState != 0) {
             currentY = (int) animationSaveY;
 
-            drawResumeButton(g2d, this.getWidth() / 2, currentY, GameMouseInput.mouseX, GameMouseInput.mouseY);
-
-            drawSettingsButton(g2d, this.getWidth() / 2, currentY + 75, GameMouseInput.mouseX, GameMouseInput.mouseY);
-
-            drawSaveAndQuitButton(g2d, this.getWidth() / 2, currentY + 150, GameMouseInput.mouseX, GameMouseInput.mouseY);
+            drawButton(g2d, this.getWidth() / 2, currentY, GameMouseInput.mouseX, GameMouseInput.mouseY, "Resume");
+            drawButton(g2d, this.getWidth() / 2,  currentY + 90, GameMouseInput.mouseX, GameMouseInput.mouseY, "Settings");
+            drawButton(g2d, this.getWidth() / 2, currentY + 180, GameMouseInput.mouseX, GameMouseInput.mouseY, "Save & Quit");
         }
     }
 
-    public void drawSaveAndQuitButton(Graphics2D g2d, int x, int y, int mouseX, int mouseY) {
+    public void drawButton(Graphics2D g2d, int x, int y, int mouseX, int mouseY, String text) {
         x = x - buttonWidth/2;
         y = y - buttonHeight/2;
 
@@ -141,127 +141,6 @@ public class PauseMenu extends GameObject {
         }
 
         //button text centering and creation
-        String text = "Save & Quit";
-        g2d.setFont(font);
-        g2d.setColor(new Color(50, 50, 50));
-        FontMetrics metrics = g2d.getFontMetrics(font);
-        int textX = x + (buttonWidth - metrics.stringWidth(text)) / 2;
-        int textY = y + ((buttonHeight - metrics.getHeight()) / 2) + metrics.getAscent() + 4;
-        g2d.drawString(text, textX, textY);
-    }
-
-    public void drawResumeButton(Graphics2D g2d, int x, int y, int mouseX, int mouseY) {
-        x = x - buttonWidth/2;
-        y = y - buttonHeight/2;
-
-        boolean isHovered = mouseX >= x && mouseX <= x + buttonWidth && mouseY >= y && mouseY <= y + buttonHeight;
-
-        //inner button
-        if (isHovered) {
-            g2d.setColor(new Color(114, 119, 139)); //dark gray
-        } else {
-            g2d.setColor(new Color(148, 148, 148)); //light gray
-        }
-        g2d.fillRect(x, y, buttonWidth, buttonHeight);
-
-        //outer border
-        if (isHovered) {
-            g2d.setColor(Color.WHITE); //white
-        } else {
-            g2d.setColor(Color.BLACK); //black
-        }
-
-        g2d.fillRect(x, y, buttonWidth, 2); //top line
-        g2d.fillRect(x, y + buttonHeight - 2, buttonWidth, 2); //bottom line
-        g2d.fillRect(x, y, 2, buttonHeight); //left line
-        g2d.fillRect(x + buttonWidth - 2, y, 2, buttonHeight); //right line
-
-        int thickness = 4; //thickness of shadows
-        //shadows
-        if (isHovered) {
-            //top and left shadows
-            g2d.setColor(new Color(171, 178, 209));
-            g2d.fillRect(x + 2, y + 2, buttonWidth - 4, thickness);
-            g2d.fillRect(x + 2, y + 2, thickness, buttonHeight - 4);
-
-            //bottom and right shadows
-            g2d.setColor(new Color(57, 59, 70));
-            g2d.fillRect(x + 2, y + buttonHeight - 2 - thickness, buttonWidth - 4, thickness);
-            g2d.fillRect(x + buttonWidth - 2 - thickness, y + 2, thickness, buttonHeight - 4);
-        } else {
-            //top and left shadows
-            g2d.setColor(new Color(255, 255, 255));
-            g2d.fillRect(x + 2, y + 2, buttonWidth - 4, thickness);
-            g2d.fillRect(x + 2, y + 2, thickness, buttonHeight - 4);
-
-            //right and bottom shadows
-            g2d.setColor(new Color(85, 85, 85));
-            g2d.fillRect(x + 2, y + buttonHeight - 2 - thickness, buttonWidth - 4, thickness);
-            g2d.fillRect(x + buttonWidth - 2 - thickness, y + 2, thickness, buttonHeight - 4);
-        }
-
-        //button text centering and creation
-        String text = "Resume";
-        g2d.setFont(font);
-        g2d.setColor(new Color(50, 50, 50));
-        FontMetrics metrics = g2d.getFontMetrics(font);
-        int textX = x + (buttonWidth - metrics.stringWidth(text)) / 2;
-        int textY = y + ((buttonHeight - metrics.getHeight()) / 2) + metrics.getAscent() + 4;
-        g2d.drawString(text, textX, textY);
-    }
-
-    public void drawSettingsButton(Graphics2D g2d, int x, int y, int mouseX, int mouseY) {
-        x = x - buttonWidth/2;
-        y = y - buttonHeight/2;
-
-        boolean isHovered = mouseX >= x && mouseX <= x + buttonWidth && mouseY >= y && mouseY <= y + buttonHeight;
-
-        //inner button
-        if (isHovered) {
-            g2d.setColor(new Color(114, 119, 139)); //dark gray
-        } else {
-            g2d.setColor(new Color(148, 148, 148)); //light gray
-        }
-        g2d.fillRect(x, y, buttonWidth, buttonHeight);
-
-        //outer border
-        if (isHovered) {
-            g2d.setColor(Color.WHITE); //white
-        } else {
-            g2d.setColor(Color.BLACK); //black
-        }
-
-        g2d.fillRect(x, y, buttonWidth, 2); //top line
-        g2d.fillRect(x, y + buttonHeight - 2, buttonWidth, 2); //bottom line
-        g2d.fillRect(x, y, 2, buttonHeight); //left line
-        g2d.fillRect(x + buttonWidth - 2, y, 2, buttonHeight); //right line
-
-        int thickness = 4; //thickness of shadows
-        //shadows
-        if (isHovered) {
-            //top and left shadows
-            g2d.setColor(new Color(171, 178, 209));
-            g2d.fillRect(x + 2, y + 2, buttonWidth - 4, thickness);
-            g2d.fillRect(x + 2, y + 2, thickness, buttonHeight - 4);
-
-            //bottom and right shadows
-            g2d.setColor(new Color(57, 59, 70));
-            g2d.fillRect(x + 2, y + buttonHeight - 2 - thickness, buttonWidth - 4, thickness);
-            g2d.fillRect(x + buttonWidth - 2 - thickness, y + 2, thickness, buttonHeight - 4);
-        } else {
-            //top and left shadows
-            g2d.setColor(new Color(255, 255, 255));
-            g2d.fillRect(x + 2, y + 2, buttonWidth - 4, thickness);
-            g2d.fillRect(x + 2, y + 2, thickness, buttonHeight - 4);
-
-            //right and bottom shadows
-            g2d.setColor(new Color(85, 85, 85));
-            g2d.fillRect(x + 2, y + buttonHeight - 2 - thickness, buttonWidth - 4, thickness);
-            g2d.fillRect(x + buttonWidth - 2 - thickness, y + 2, thickness, buttonHeight - 4);
-        }
-
-        //button text centering and creation
-        String text = "Settings";
         g2d.setFont(font);
         g2d.setColor(new Color(50, 50, 50));
         FontMetrics metrics = g2d.getFontMetrics(font);
@@ -282,22 +161,28 @@ public class PauseMenu extends GameObject {
             int rx = midX - buttonWidth / 2;
             int ry = (currentY) - buttonHeight / 2;
             if (mouseX >= rx && mouseX <= rx + buttonWidth && mouseY >= ry && mouseY <= ry + buttonHeight) {
+                GameMouseInput.reset();
+                GameMouseInput.isMouseLeftClickPressed = false;
                 pauseMenuState = 3;
                 System.out.println("Player unpaused game");
                 return;
             }
 
             int ex = midX - buttonWidth / 2;
-            int ey = (currentY + 75) - buttonHeight / 2;
+            int ey = (currentY + 90) - buttonHeight / 2;
             if (mouseX >= ex && mouseX <= ex + buttonWidth && mouseY >= ey && mouseY <= ey + buttonHeight) {
+                GameMouseInput.reset();
+                GameMouseInput.isMouseLeftClickPressed = false;
                 System.out.println("Player opened settings menu");
                 return;
             }
 
             int emx = midX - buttonWidth / 2;
-            int emy = (currentY + 150) - buttonHeight / 2;
+            int emy = (currentY + 180) - buttonHeight / 2;
             if (mouseX >= emx && mouseX <= emx + buttonWidth && mouseY >= emy && mouseY <= emy + buttonHeight) {
-                saveGame.saveData(game, player, mainMenu);
+                GameMouseInput.reset();
+                GameMouseInput.isMouseLeftClickPressed = false;
+                saveGame.saveData(game, player, mainMenu, enemyManager);
                 game.closeUpgradeMenu();
                 game.unpauseGame();
                 game.gameReset();
@@ -308,7 +193,14 @@ public class PauseMenu extends GameObject {
                 return;
             }
         }
+        openPauseMenu();
 
+        closePauseMenu();
+
+        this.repaint(); //do not remove, very important
+    }
+
+    public void openPauseMenu() {
         if (pauseMenuState == 1) { //slide up
             animationSaveY -= (animationSaveY - pauseY) * ANIMATION_SPEED; //moves save screen
             if (animationSaveY - pauseY < 1) { //snapping
@@ -316,7 +208,10 @@ public class PauseMenu extends GameObject {
                 pauseMenuState = 2; //state 2 means visible
             }
         }
-        else if (pauseMenuState == 3) { //slide down
+    }
+
+    public void closePauseMenu() {
+        if (pauseMenuState == 3) { //slide down
             double screenBottom = this.getHeight() + 50;
             animationSaveY += (screenBottom - animationSaveY) * ANIMATION_SPEED + 1; //moves save screen
             if (animationSaveY >= screenBottom) { //snapping
@@ -325,11 +220,17 @@ public class PauseMenu extends GameObject {
                 game.unpauseGame();
             }
         }
-        this.repaint(); //do not remove, very important
     }
 
-    //gets a pixel and that pixels surrounding pixels, mixes the colors together and outputs the result to make it look blurry
-    //also down and upscales to save processing power and smooths result to avoid blockiness
+    /**
+     * Blurs the background of anything behind the open menu by getting a pixel and its surrounding pixels
+     * Mixes the colors together and outputs the result to make it look blurry
+     * Also down and upscales to save processing power and smooths result to avoid blockiness
+     * Pre: Win menu is visible
+     * Post: A blurred background
+     * @param targetCanvas The canvas that is to be blurred
+     * @return The blurred canvas
+     */
     private BufferedImage generateBlurredImage(Component targetCanvas) {
         int w = targetCanvas.getWidth();
         int h = targetCanvas.getHeight();

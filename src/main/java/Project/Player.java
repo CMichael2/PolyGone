@@ -15,20 +15,23 @@ public class Player extends GameObject {
     public int playerMaxHealth = 100;
     public int playerCurrentHealth = playerMaxHealth;
 
-    public int startingPlayerLevel = 0; //starting player level
+    public int startingPlayerLevel = 49; //starting player level
     public int playerLevel = startingPlayerLevel;
     public double currentPlayerXp = 0;
     public int totalPlayerXp = 0;
     public int playerXPBarMaxXP = 10 + (int)((Math.pow(playerLevel, 1.8)/4.0)+0.5); //base xp level up requirement
     public final int PLAYER_XP_BAR_MAX_XP_BASE = 10;
     PolyGone game;
+    EnemyManager enemyManager;
 
-    public Player(PolyGone mainGame) { //sets attributes for player game object
+    public Player(PolyGone mainGame, EnemyManager enemyManager) { //sets attributes for player game object
         this.setSize(40, 40);
         this.setX((mainGame.getWidth() / 2) - (this.getHeight() / 2));
         this.setY((mainGame.getHeight() / 2) - (this.getHeight() / 2));
         this.setColor(Color.CYAN);
         this.game = mainGame;
+        this.enemyManager = enemyManager;
+        System.out.println(playerCurrentHealth);
     }
 
     public int updateHealth(int healthReduction) {
@@ -52,7 +55,7 @@ public class Player extends GameObject {
         }
         currentPlayerXp = 0; //reset xp
         this.playerXPBarMaxXP = 10 + (int)((Math.pow(playerLevel, 1.8)/4.0)+0.5); //calculates new xp level up requirements
-        game.enemySpawnRate = game.baseEnemySpawnRate - (playerLevel*35);
+        enemyManager.enemySpawnRate = enemyManager.baseEnemySpawnRate - (playerLevel*35);
     }
 
     //movement for player
@@ -152,7 +155,7 @@ public class Player extends GameObject {
     public int maxAmmo = 15; //sets max ammo
     public int currentAmmo = maxAmmo;
     public long lastAmmoRegenTime = 0; //do not change
-    public long ammoRegenCooldown = 400; //sets ammo regeneration time
+    public long ammoReloadCooldown = 3000; //sets ammo bar reload time
     public boolean isReloading = false;
 
     public void updateAmmoRegen() {
@@ -162,7 +165,7 @@ public class Player extends GameObject {
         }
         if (isReloading) {
             long currentTime = System.currentTimeMillis();
-            if (currentTime - lastAmmoRegenTime >= ammoRegenCooldown) { //waits till the regeneration time is over to regen ammo
+            if (currentTime - lastAmmoRegenTime >= ammoReloadCooldown) { //waits till the regeneration time is over to regen ammo
                 currentAmmo = maxAmmo;
                 isReloading = false;
             }
@@ -178,7 +181,7 @@ public class Player extends GameObject {
         long timeElapsed = System.currentTimeMillis() - lastAmmoRegenTime;
 
         //calculate percentage of completion
-        double progress = (double) timeElapsed / ammoRegenCooldown;
+        double progress = (double) timeElapsed / ammoReloadCooldown;
 
         return Math.max(0.0, Math.min(1.0, progress));
     }

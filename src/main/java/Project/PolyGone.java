@@ -1,3 +1,9 @@
+/*
+Michael Cao
+6/5/2026
+ICS3U1 Final Project
+ */
+
 package Project;
 
 import Framework.Game; //package containing the abstract class game where all methods are inherited from
@@ -11,51 +17,49 @@ public class PolyGone extends Game {
 
     private boolean isGameFocused = true;
 
+    EnemyManager enemyManager;
+
     Player player; //creates player variable that follows the code in Player class
 
     //gui and hud variables/objects
     private GUI gameUI; //object for referencing gui class
 
     private PauseMenu pauseMenu;
-    public boolean showPauseMenu = false;
     private boolean pauseMenuKeyWasPressedLastFrame = false;
     private long pauseMenuOpenTime = 0;
+    private GameState stateBeforePause = GameState.PLAYING;
 
     private DebugHUD debugHUD;
     private boolean showDebugHUD = false;
     private boolean debugKeyWasPressedLastFrame = false;
 
     private UpgradeMenu upgradeMenu;
-    private boolean showUpgradeMenu;
     private long upgradeMenuOpenTime = 0;
 
     public long totalTimeSpentPaused = 0;
 
     public int saveSlotNumber = 0;
 
-    private ArrayList<Bullets> bulletsList = new ArrayList<>(); //creates arraylist of bullets
-
-    //class enemy variables
-    //placed here because enemies are spawned by the main game and follow code in enemies class
-    private ArrayList<Enemies> enemiesList = new ArrayList<>();
-    private double enemySpeed = 4.0; //used to determine enemy speed, 33% of default player speed
-    private long lastEnemySpawnTime = 0;
-    public int baseEnemySpawnRate = 2000;
-    public int enemySpawnRate = 2000; //used to determine the enemy spawn rate in milliseconds
-    private boolean isFirstEnemy = true; //used to begin spawning of enemies
-    public double enemyDroppedXp = 300.0;
+    private DeathMenu deathMenu;
 
     private WinMenu winMenu;
-    public boolean showWinMenu = false;
-    public boolean isGameWon = false;
     public boolean firstWin = true; //makes sure that win screen only shows once
 
     private MainMenu mainMenu;
-    public boolean showMainMenu = false;
-    public boolean isGameInitalStart = true;
+    public boolean isGameInitialStart = true;
 
     private SaveGame saveGame;
     public SaveGame pendingSaveData = null;
+
+    private GameState currentState = GameState.MAIN_MENU;
+
+    public GameState getCurrentState() {
+        return this.currentState;
+    }
+
+    public void setCurrentState(GameState newState) {
+        this.currentState = newState;
+    }
 
     private final Set<Integer> activeKeys = new HashSet<>(); //arraylist to store unlimited active keys
 
@@ -112,137 +116,137 @@ public class PolyGone extends Game {
         this.getContentPane().setComponentZOrder(mainMenu, 0);
 
         openMainMenu();
-        this.isGameInitalStart = false;
+        this.isGameInitialStart = false;
     }
 
     @Override
     public void act() throws IOException {
-        if (showMainMenu) {
-            if (mainMenu != null) {
-                mainMenu.act();
+        openPauseMenu();
+        openDebugHUD();
+
+        switch (currentState) {
+            case MAIN_MENU:
+                if (mainMenu != null) {
+                    mainMenu.act();
+                }
                 return;
-            }
+
+            case PAUSED:
+                if (pauseMenu != null) {
+                    pauseMenu.act();
+                    GameMouseInput.reset();
+                    return;
+                }
+                break;
+
+            case DEATH_SCREEN:
+                if (deathMenu != null) {
+                    deathMenu.act();
+                    GameMouseInput.reset();
+                    return;
+                }
+                break;
+
+            case WIN_SCREEN:
+                if (winMenu != null) {
+                    winMenu.act();
+                }
+                GameMouseInput.reset();
+                return;
+
+            case UPGRADE_MENU:
+                if (upgradeMenu != null) {
+                    upgradeMenu.act();
+                }
+                GameMouseInput.reset();
+                return;
+
+            case PLAYING:
+                gameLost();
+                gameWon();
+                if (player == null) {
+                    return;
+                }
+
+                player.playerMovementUpdate(this);
+                player.handlePlayerShooting(this, Bullets.getBulletsList());
+
+                Bullets.bulletBehavior(this, player, enemyManager);
+                enemyManager.update();
+                break;
         }
-
-        openPauseMenu(); //only for opening pause menu when escape key is pressed
-
-        gameWon();
-        if (isGameWon) {
-            return;
-        }
-
-        if (showPauseMenu) { //checks if pause menu is open
-            if (pauseMenu != null) {
-                pauseMenu.act();
-            }
-            GameMouseInput.reset();
-            return;
-        }
-
-        if (showWinMenu) {
-            if (winMenu != null) {
-                winMenu.act();
-            }
-            GameMouseInput.reset();
-            return;
-        }
-
-        if (showUpgradeMenu) {
-            if (upgradeMenu != null) {
-                upgradeMenu.act();
-            }
-            GameMouseInput.reset();
-            return;
-        }
-
-        if (player == null) {
-            return;
-        }
-
-        //player interaction updates
-        player.playerMovementUpdate(this); //calls player movement update method inside player class
-        player.handlePlayerShooting(this, this.bulletsList); //calls player shooting method inside player class
-        openDebugHUD(); //opens debug hud when f3 key is pressed
-
-        //method for bullet creation and collision processing
-        bulletBehavior();
-
-        //method for enemy creation
-        enemySpawning();
-
-        //method for enemy updates including movement, collision handled in other methods and in enemies class
-        enemyBehaviorUpdates();
 
         //resets inputs in mouse input class
         GameMouseInput.reset();
     }
 
-    public void openMainMenu() {
-        this.showMainMenu = true;
-        if (mainMenu != null) {
-            mainMenu.setMainMenuVisible(true);
-        }
-        GameMouseInput.reset();
-        this.repaint();
-    }
-
     public void closeMainMenu() {
-        this.showMainMenu = false;
+        this.currentState = GameState.PLAYING;
 
         if (mainMenu != null) {
             mainMenu.setMainMenuVisible(false);
         }
 
         if (player == null && gameUI == null) {
+            enemyManager = new EnemyManager(this, player);
+
             // creates player game object
-            player = new Player(this);
+            player = new Player(this, enemyManager);
             add(player);
+
+            enemyManager.player = player;
 
             if (mainMenu != null) mainMenu.player = player;
             if (pauseMenu != null) pauseMenu.player = player;
             if (winMenu != null) winMenu.player = player;
+            if (deathMenu != null) deathMenu.player = player;
 
-            // creates gui game object
+            //creates gui game object
             gameUI = new GUI(this, player);
             add(gameUI);
 
-            // Dynamically instantiate components that rely on the player
             if (debugHUD == null) {
-                debugHUD = new DebugHUD(this, player);
+                debugHUD = new DebugHUD(this, player, enemyManager);
                 add(debugHUD);
             }
             if (upgradeMenu == null) {
-                upgradeMenu = new UpgradeMenu(this, player, debugHUD);
+                upgradeMenu = new UpgradeMenu(this, player, debugHUD, enemyManager);
                 add(upgradeMenu);
             }
             if (pauseMenu == null) {
-                pauseMenu = new PauseMenu(this, player, mainMenu);
+                pauseMenu = new PauseMenu(this, player, mainMenu, enemyManager);
                 add(pauseMenu);
             }
             if (winMenu == null) {
-                winMenu = new WinMenu(this, player);
+                winMenu = new WinMenu(this, player, mainMenu, enemyManager);
                 add(winMenu);
+            }
+
+            if (deathMenu == null) {
+                deathMenu = new DeathMenu(this, player, mainMenu, enemyManager);
+                add(deathMenu);
             }
 
             this.getContentPane().setComponentZOrder(mainMenu, 0);
             this.getContentPane().setComponentZOrder(debugHUD, 1);
             this.getContentPane().setComponentZOrder(pauseMenu, 2);
-            this.getContentPane().setComponentZOrder(winMenu, 3);
-            this.getContentPane().setComponentZOrder(upgradeMenu, 4);
-            this.getContentPane().setComponentZOrder(gameUI, 5);
-            this.getContentPane().setComponentZOrder(player, 6);
+            this.getContentPane().setComponentZOrder(deathMenu, 3);
+            this.getContentPane().setComponentZOrder(winMenu, 4);
+            this.getContentPane().setComponentZOrder(upgradeMenu, 5);
+            this.getContentPane().setComponentZOrder(gameUI, 6);
+            this.getContentPane().setComponentZOrder(player, 7);
         } else {
             player.setVisible(true);
             gameUI.setVisible(true);
 
-            enemiesList.clear();
-            bulletsList.clear();
+            enemyManager.clearEnemies();
+            Bullets.clearAllBullets(this);
         }
 
         if (this.pendingSaveData != null) {
-            this.pendingSaveData.applyDataToGame(this, this.player);
+            this.pendingSaveData.applyDataToGame(this, this.player, mainMenu, enemyManager);
 
-            // Clear the pending save tracking variable so it doesn't run again
+
             this.pendingSaveData = null;
             System.out.println("Save loaded");
         } else {
@@ -257,7 +261,11 @@ public class PolyGone extends Game {
     }
 
     private void pauseGame(boolean shouldPause) {
-        this.showPauseMenu = shouldPause;
+        if (shouldPause && this.currentState != GameState.PAUSED) {
+            this.stateBeforePause = this.currentState;
+        }
+
+        this.currentState = GameState.PAUSED;
 
         if (pauseMenu != null) {
             pauseMenu.setPauseMenuVisible(shouldPause);
@@ -267,7 +275,7 @@ public class PolyGone extends Game {
         } else {
             long timeSpentPaused = System.currentTimeMillis() - pauseMenuOpenTime;
 
-            for (Bullets b : bulletsList) {
+            for (Bullets b : Bullets.getBulletsList()) {
                 b.bulletTimeOfFire += timeSpentPaused;
             }
             GameMouseInput.isMouseLeftClickPressed = false;
@@ -277,40 +285,46 @@ public class PolyGone extends Game {
 
     //unpauses game
     public void unpauseGame() {
-        this.showPauseMenu = false;
+        this.currentState = this.stateBeforePause;
 
         long timeSpentPaused = System.currentTimeMillis() - pauseMenuOpenTime;
 
-        for (Bullets b : bulletsList) {
+        for (Bullets b : Bullets.getBulletsList()) {
             b.bulletTimeOfFire += timeSpentPaused;
         }
 
         if (pauseMenu != null) {
             pauseMenu.setPauseMenuVisible(false);
         }
-        if (showUpgradeMenu) {
+
+        if (this.currentState == GameState.UPGRADE_MENU) {
             this.upgradeMenuOpenTime = System.currentTimeMillis();
         }
         GameMouseInput.isMouseLeftClickPressed = false;
         GameMouseInput.reset();
     }
 
+    public void openMainMenu() {
+        this.currentState = GameState.MAIN_MENU;
+        if (mainMenu != null) mainMenu.setMainMenuVisible(true);
+        GameMouseInput.reset();
+        this.repaint();
+    }
+
     public void openUpgradeMenu() {
-        this.showUpgradeMenu = true;
+        this.currentState = GameState.UPGRADE_MENU;
         this.upgradeMenuOpenTime = System.currentTimeMillis();
-        if (upgradeMenu != null) {
-            upgradeMenu.setUpgradeMenuVisible(true);
-        }
+        if (upgradeMenu != null) upgradeMenu.setUpgradeMenuVisible(true);
         GameMouseInput.reset();
         this.repaint();
     }
 
     public void closeUpgradeMenu() {
-        this.showUpgradeMenu = false;
+        this.currentState = GameState.PLAYING;
 
         long timeSpentInMenu = System.currentTimeMillis() - upgradeMenuOpenTime;
 
-        for (Bullets b : bulletsList) {
+        for (Bullets b : Bullets.getBulletsList()) {
             b.bulletTimeOfFire += timeSpentInMenu;
         }
 
@@ -342,16 +356,16 @@ public class PolyGone extends Game {
         if (isKeyPressed(KeyEvent.VK_ESCAPE)) {
             //only toggles on first frame of being pressed
             if (!pauseMenuKeyWasPressedLastFrame) {
-                if (showPauseMenu) {
+                if (currentState == GameState.PAUSED) {
                     if (pauseMenu != null) {
                         if (pauseMenu.pauseMenuState == 2)
-                        pauseMenu.pauseMenuState = 3;
+                            pauseMenu.pauseMenuState = 3;
                     }
                 } else {
-                    if (!showPauseMenu && showUpgradeMenu) {
+                    if (currentState != GameState.PAUSED && currentState == GameState.UPGRADE_MENU) {
                         long now = System.currentTimeMillis();
                         long timeSpentInUpgradeSoFar = now - upgradeMenuOpenTime;
-                        for (Bullets b : bulletsList) {
+                        for (Bullets b : Bullets.getBulletsList()) {
                             b.bulletTimeOfFire += timeSpentInUpgradeSoFar;
                         }
                     }
@@ -364,196 +378,20 @@ public class PolyGone extends Game {
         }
     }
 
-    private void bulletBehavior() {
-        //array loop for creating and storing data of multiple bullets at once
-        for (int i = 0; i < bulletsList.size(); i++) {
-            Bullets b = bulletsList.get(i);
-
-            //bullet location before movement
-            int bulletPrevX = b.getX();
-            int bulletPrevY = b.getY();
-
-            //checks if the bullet should be removed if it has reached its firing distance(lifespan) in bulletUpdates method in the bullets class
-            if (b.bulletUpdates(this)) {
-                remove(b);
-                bulletsList.remove(i);
-                i--;
-                continue; //to stop checking collision for removed bullets
+    public void gameLost() {
+        if (player.playerCurrentHealth <= 0) {
+            this.currentState = GameState.DEATH_SCREEN;
+            if (deathMenu != null) {
+                deathMenu.setDeathMenuVisible(true);
             }
-
-            //calls collision checking method of enemies colliding with bullets based on ray casting
-            if (enemyAndBulletCollisionChecking(b, bulletPrevX, bulletPrevY)) {
-                bulletsList.remove(i);
-                i--;
-            }
+            System.out.println("Player has died");
         }
-    }
-
-    private boolean enemyAndBulletCollisionChecking(Bullets b, int bulletPrevX, int bulletPrevY) {
-        //loop to check if any bullet collides with any enemy
-        for (int j = 0; j < enemiesList.size(); j++) {
-            Enemies e = enemiesList.get(j);
-
-            //calls ray casting enemy collision method to check for collisions with bullets
-            //or uses regular collision checking inherited from game object class
-            if (e.collides(b) || bulletPathIntersectsEnemy(b, bulletPrevX, bulletPrevY, e)) {
-
-                e.takeDamage(1); //updates enemy health info in player class
-
-                remove(b); //removes bullet when collision happens
-
-                //removes enemy when killed
-                if (e.isDead()) {
-                    remove(e);
-                    enemiesList.remove(j);
-                    player.updatePlayerXP(enemyDroppedXp, this);
-                    this.repaint();
-                }
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private void enemySpawning() {
-        if (System.currentTimeMillis() - lastEnemySpawnTime > enemySpawnRate || isFirstEnemy) {
-            Enemies newEnemy = new Enemies();
-            newEnemy.enemyTimeOfSpawn = System.currentTimeMillis();
-
-            enemySpawnPosition(newEnemy);
-            add(newEnemy);
-            enemiesList.add(newEnemy); //adds new element to array list
-
-            double enemyTargetX = player.getX() - newEnemy.getX();
-            double enemyTargetY = player.getY() - newEnemy.getY();
-            double distanceForEnemies = Math.sqrt(enemyTargetX * enemyTargetX + enemyTargetY * enemyTargetY);
-
-            if (distanceForEnemies > 1.0) {
-                newEnemy.enemyVelocityX = (enemyTargetX / distanceForEnemies) * enemySpeed;
-                newEnemy.enemyVelocityY = (enemyTargetY / distanceForEnemies) * enemySpeed;
-            }
-
-            isFirstEnemy = false;
-            lastEnemySpawnTime = System.currentTimeMillis();
-        }
-    }
-
-    private void enemySpawnPosition(Enemies newEnemy) {
-        Random r = new Random();
-        final int ENEMY_SPAWN_POSITION_BUFFER = 30;
-        int side = r.nextInt(4);
-
-        switch (side) {
-            case 0: //top of field spawning
-                newEnemy.setX(r.nextInt(getWidth()));
-                newEnemy.setY(-ENEMY_SPAWN_POSITION_BUFFER);
-                break;
-
-            case 1: //bottom of field spawning
-                newEnemy.setX(r.nextInt(getWidth()));
-                newEnemy.setY(getHeight() + ENEMY_SPAWN_POSITION_BUFFER);
-                break;
-
-            case 2: //left side of field spawning
-                newEnemy.setX(-ENEMY_SPAWN_POSITION_BUFFER);
-                newEnemy.setY(r.nextInt(getHeight()));
-                break;
-
-            case 3: //right side of field spawning
-                newEnemy.setX(getWidth() + ENEMY_SPAWN_POSITION_BUFFER);
-                newEnemy.setY(r.nextInt(getHeight()));
-                break;
-        }
-    }
-
-    private void enemyBehaviorUpdates() {
-        //handles the creation and deletion of enemies based on enemies class
-        for (int i = 0; i < enemiesList.size(); i++) {
-            Enemies e = enemiesList.get(i);
-
-            //calls method in enemies class for enemy movement and enemy default collision with PLAYER
-            if (e.enemyMovementUpdates(this, player, enemySpeed)) {
-
-                int currentPlayerHealth = player.updateHealth(e.enemyDamage);
-
-                if (currentPlayerHealth <= 0) {
-                    System.out.println("Player died, resetting"); //console info
-                    gameReset();
-                    return;
-                }
-
-                enemiesList.remove(i);
-                i--;
-            }
-        }
-    }
-
-    //ray casting to determine if bullets will collide with enemies
-    //finds the closest point in the bullet's trajectory in the frame to an enemy and checks if the 2 objects have/will collide at that point
-    private boolean bulletPathIntersectsEnemy(Bullets b, int bulletPrevX, int bulletPrevY, Enemies e) {
-        int bulletCurrX = b.getX();
-        int bulletCurrY = b.getY();
-
-        int buffer = 100; //bullet travel in one frame
-        if (Math.abs(bulletCurrX - e.getX()) > buffer && Math.abs(bulletPrevX - e.getX()) > buffer) {
-            return false;
-        }
-        if (Math.abs(bulletCurrY - e.getY()) > buffer && Math.abs(bulletPrevY - e.getY()) > buffer) {
-            return false;
-        }
-
-        //gets radius
-        double bulletRadius = Player.bulletWidth / 2.0;
-        double enemyRadius = Enemies.enemyWidth / 2.0;
-
-        //gets center of enemy
-        double enemyX = e.getX() + (e.getWidth() / 2.0);
-        double enemyY = e.getY() + (e.getHeight() / 2.0);
-
-        //gets the distance the bullet moved within one frame(16ms)
-        double bulletXDisplacement = bulletCurrX - bulletPrevX;
-        double bulletYDisplacement = bulletCurrY - bulletPrevY;
-        double magnitudeOfBulletTravel = bulletXDisplacement * bulletXDisplacement + bulletYDisplacement * bulletYDisplacement; //PT calculations
-
-        //if the enemy has not moved, the collision state is set to true to prevent division by zero in following lines of code
-        if (magnitudeOfBulletTravel == 0) { return e.collides(b); }
-
-        //finds the closest point in percentage from the enemy to the bullet line of travel
-        double closestPoint = ((enemyX - bulletPrevX) * bulletXDisplacement + (enemyY - bulletPrevY) * bulletYDisplacement) / magnitudeOfBulletTravel;
-
-        //restricts the max and min values to 0(bullet starting point) and 1(bullet end point) to create a line segment
-        if (closestPoint < 0) { closestPoint = 0; }
-        if (closestPoint > 1) { closestPoint = 1; }
-
-        //conversion from percentage to x and y coordinates based on the bullet's previous coordinates and their projected displacement this frame
-        double closestX = bulletPrevX + closestPoint * bulletXDisplacement;
-        double closestY = bulletPrevY + closestPoint * bulletYDisplacement;
-
-        //calculates distance from enemy center to the closest point on the bullet's trajectory
-        double distX = enemyX - closestX;
-        double distY = enemyY - closestY;
-
-        double distanceSquared = (distX * distX) + (distY * distY);
-        double combinedRadius = enemyRadius + bulletRadius;
-
-        //checks if the distance from the center of the enemy to the center of the bullet at their closest point in the bullets trajectory
-        //is less than their combined radius, meaning they have collided.
-        if (distanceSquared <= (combinedRadius * combinedRadius)) {
-            return true;
-        }
-        return false;
-    }
-
-    //for debug menu
-    public int getEnemyCount() {
-        return this.enemiesList.size();
     }
 
     public void gameWon() {
-        if (!isGameWon && player.playerLevel == 50 && firstWin) {
-            isGameWon = true;
+        if (player.playerLevel == 50 && firstWin) {
+            this.currentState = GameState.WIN_SCREEN;
             firstWin = false;
-            showWinMenu = true;
             if (winMenu != null) {
                 winMenu.setWinMenuVisible(true);
             }
@@ -562,25 +400,22 @@ public class PolyGone extends Game {
     }
 
     public void gameReset() {
-        this.isGameWon = false;
-        this.showWinMenu = false;
         if (winMenu != null) {
             winMenu.setWinMenuVisible(false);
         }
+        if (deathMenu != null) {
+            deathMenu.setDeathMenuVisible(false);
+        }
 
-        for (Enemies e : enemiesList) {
+        for (Enemies e : enemyManager.getEnemiesList()) {
             remove(e);
         }
-        for (Bullets b : bulletsList) {
+        for (Bullets b : Bullets.getBulletsList()) {
             remove(b);
         }
 
-        enemiesList.clear();
-        bulletsList.clear();
-
-        this.isFirstEnemy = true;
-        this.lastEnemySpawnTime = 0;
-        enemySpawnRate = baseEnemySpawnRate;
+        enemyManager.clearEnemies();
+        Bullets.clearAllBullets(this);
 
         player.playerCurrentHealth = player.playerMaxHealth; //resets player health
 
@@ -588,15 +423,19 @@ public class PolyGone extends Game {
         player.setX((this.getWidth() / 2) - (player.getWidth() / 2));
         player.setY((this.getHeight() / 2) - (player.getHeight() / 2));
         player.playerLevel = player.startingPlayerLevel;
+        player.playerCurrentHealth = player.playerMaxHealth;
         player.playerXPBarMaxXP = 10 + (int)((Math.pow(player.playerLevel, 1.8)/4.0)+0.5);;
         player.currentPlayerXp = 0;
         player.totalPlayerXp = 0;
         player.currentAmmo = player.maxAmmo;
 
         upgradeMenu.numberOfRerollsLeft = upgradeMenu.startingNumberOfRerolls;
+        firstWin = true;
 
         GameMouseInput.isMouseLeftClickPressed = false;
         GameMouseInput.reset();
+
+        this.currentState = GameState.PLAYING;
 
         this.repaint();
     }

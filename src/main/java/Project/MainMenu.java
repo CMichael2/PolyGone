@@ -11,33 +11,33 @@ public class MainMenu extends GameObject {
     Player player; //reference to object
     PolyGone game;
 
-    private final Font FONT = new Font("Consolas", Font.BOLD, 30);
+    private final Font FONT = new Font("Consolas", Font.BOLD, 40);
 
     private boolean isVisible = false; //is this game object visible?
     public int saveMenuState = 0; //0 is closed, 1 is opening, 2 is open, 3 is closing
 
     //main menu button variables/class fields
-    private final int BUTTON_WIDTH = 350;
-    private final int BUTTON_HEIGHT = 50;
+    private final int BUTTON_WIDTH = 450;
+    private final int BUTTON_HEIGHT = 70;
     private int buttonX; //should not be constant because its value is set in a constructor, not here
 
     //main menu button y coordinates variables
-    private final int NEW_GAME_Y = 505;
-    private final int CONTINUE_Y = 570;
-    private final int SETTINGS_Y = 635;
-    private final int CREDITS_Y = 700;
-    private final int QUIT_Y = 765;
+    private final int NEW_GAME_Y = 660;
+    private final int CONTINUE_Y = 745;
+    private final int SETTINGS_Y = 830;
+    private final int CREDITS_Y = 915;
+    private final int QUIT_Y = 1000;
 
     //save buttons/frames variables/class fields
     //many are constants because they do not need to be updated
-    private final int SAVE_FRAME_WIDTH = 300;
-    private final int SAVE_FRAME_HEIGHT = 550;
-    private final int SAVE_FRAME_X = 650;
-    private final int SAVE_FRAME_Y = 400; //default y coordinates for the save slots/frames
-    private final int SAVE_BUTTON_WIDTH = 300;
-    private final int SAVE_PLAY_BUTTON_X = 750;
-    private final int SAVE_DELETE_BUTTON_X = 1200;
-    private final int SAVE_BUTTON_Y = 350;
+    private final int SAVE_FRAME_WIDTH = 375;
+    private final int SAVE_FRAME_HEIGHT = 800;
+    private final int SAVE_FRAME_X = 800;
+    private final int SAVE_FRAME_Y = 500; //default y coordinates for the save slots/frames
+    private final int SAVE_BUTTON_WIDTH = 350;
+    private final int SAVE_PLAY_BUTTON_X = 1000;
+    private final int SAVE_DELETE_BUTTON_X = 1450;
+    private final int SAVE_BUTTON_Y = 500;
     public int selectedSave = 0;
     public int unfilledSaveSlot = 0; //used to check where a game can be saved to if possible
     private String[][] slotLines = {
@@ -90,7 +90,7 @@ public class MainMenu extends GameObject {
         g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
         //background color and size
-        g2d.setColor(new Color(41, 41, 41));
+        g2d.setColor(new Color(27, 26, 26));
         g2d.fillRect(0, 0, this.getWidth(), this.getHeight());
 
         //main menu buttons
@@ -105,8 +105,8 @@ public class MainMenu extends GameObject {
             int currentY = (int) animationSaveY; //constantly updates the buttons/frames y position so it looks animated
 
             drawSaveFrame(g2d, SAVE_FRAME_X, currentY, slotLines[0], 1, GameMouseInput.mouseX, GameMouseInput.mouseY);
-            drawSaveFrame(g2d, SAVE_FRAME_X + 350, currentY, slotLines[1], 2, GameMouseInput.mouseX, GameMouseInput.mouseY);
-            drawSaveFrame(g2d, SAVE_FRAME_X + 700, currentY, slotLines[2], 3, GameMouseInput.mouseX, GameMouseInput.mouseY);
+            drawSaveFrame(g2d, SAVE_FRAME_X + 425, currentY, slotLines[1], 2, GameMouseInput.mouseX, GameMouseInput.mouseY);
+            drawSaveFrame(g2d, SAVE_FRAME_X + 850, currentY, slotLines[2], 3, GameMouseInput.mouseX, GameMouseInput.mouseY);
 
             drawSaveScreenButtons(g2d, SAVE_PLAY_BUTTON_X, currentY + SAVE_BUTTON_Y, GameMouseInput.mouseX, GameMouseInput.mouseY, "Play");
             drawSaveScreenButtons(g2d, SAVE_DELETE_BUTTON_X, currentY + SAVE_BUTTON_Y, GameMouseInput.mouseX, GameMouseInput.mouseY, "Delete");
@@ -175,7 +175,7 @@ public class MainMenu extends GameObject {
         g2d.setColor(new Color(50, 50, 50));
         FontMetrics metrics = g2d.getFontMetrics(FONT);
         int textX = x + (BUTTON_WIDTH - metrics.stringWidth(text)) / 2;
-        int textY = y + ((BUTTON_HEIGHT - metrics.getHeight()) / 2) + metrics.getAscent() + 4;
+        int textY = y + ((BUTTON_HEIGHT - metrics.getHeight()) / 2) + metrics.getAscent() + 7;
         g2d.drawString(text, textX, textY);
     }
 
@@ -238,20 +238,20 @@ public class MainMenu extends GameObject {
         g2d.fillRect(x + SAVE_FRAME_WIDTH - 2 - thickness, y + 2, thickness, SAVE_FRAME_HEIGHT - 4);
 
         //header
-        g2d.setFont(new Font("Consolas", Font.BOLD, 24));
+        g2d.setFont(new Font("Consolas", Font.BOLD, 35));
         g2d.setColor(new Color(30, 30, 30));
-        g2d.drawString("SLOT " + slotID, x + 20, y + 40);
+        g2d.drawString("SLOT " + slotID, x + 25, y + 50);
 
         //save detail formatting
-        g2d.setFont(new Font("Consolas", Font.PLAIN, 16));
+        g2d.setFont(new Font("Consolas", Font.PLAIN, 25));
         g2d.setColor(new Color(50, 50, 50));
 
-        int startY = y + 75;
-        int lineSpacing = 30;
+        int startY = y + 100;
+        int lineSpacing = 50;
 
         for (int i = 0; i < lines.length; i++) {
             if (lines[i] != null && !lines[i].isEmpty()) { //only draws lines with text
-                g2d.drawString(lines[i], x + 20, startY + (i * lineSpacing));
+                g2d.drawString(lines[i], x + 25, startY + (i * lineSpacing));
             }
         }
     }
@@ -425,7 +425,7 @@ public class MainMenu extends GameObject {
                     return;
                 }
 
-                int s2x = (SAVE_FRAME_X + 350) - SAVE_FRAME_WIDTH / 2;
+                int s2x = (SAVE_FRAME_X + 425) - SAVE_FRAME_WIDTH / 2;
                 int s2y = SAVE_FRAME_Y - SAVE_FRAME_HEIGHT / 2;
                 if (mouseX >= s2x && mouseX <= s2x + SAVE_FRAME_WIDTH && mouseY >= s2y && mouseY <= s2y + SAVE_FRAME_HEIGHT) {
                     if (selectedSave == 2) { //deselects other saves and selects this one
@@ -439,7 +439,7 @@ public class MainMenu extends GameObject {
                     return;
                 }
 
-                int s3x = (SAVE_FRAME_X + 700) - SAVE_FRAME_WIDTH / 2;
+                int s3x = (SAVE_FRAME_X + 850) - SAVE_FRAME_WIDTH / 2;
                 int s3y = SAVE_FRAME_Y - SAVE_FRAME_HEIGHT / 2;
                 if (mouseX >= s3x && mouseX <= s3x + SAVE_FRAME_WIDTH && mouseY >= s3y && mouseY <= s3y + SAVE_FRAME_HEIGHT) {
                     if (selectedSave == 3) { //deselects other saves and selects this one
@@ -454,7 +454,7 @@ public class MainMenu extends GameObject {
                 }
                 //play button
                 int pX = SAVE_PLAY_BUTTON_X - SAVE_BUTTON_WIDTH / 2;
-                int pY = (int) animationSaveY + 350 - BUTTON_HEIGHT / 2;
+                int pY = (int) animationSaveY + SAVE_BUTTON_Y - BUTTON_HEIGHT / 2;
                 if (mouseX >= pX && mouseX <= pX + SAVE_BUTTON_WIDTH && mouseY >= pY && mouseY <= pY + BUTTON_HEIGHT) {
                     if (selectedSave == 0) {
                         return;
@@ -481,7 +481,7 @@ public class MainMenu extends GameObject {
 
                 //delete button
                 int dX = SAVE_DELETE_BUTTON_X - SAVE_BUTTON_WIDTH / 2;
-                int dY = (int) animationSaveY + 350 - BUTTON_HEIGHT / 2;
+                int dY = (int) animationSaveY + SAVE_BUTTON_Y - BUTTON_HEIGHT / 2;
                 if (mouseX >= dX && mouseX <= dX + SAVE_BUTTON_WIDTH && mouseY >= dY && mouseY <= dY + BUTTON_HEIGHT) {
                     if (selectedSave == 0) {
                         return;
@@ -532,13 +532,12 @@ public class MainMenu extends GameObject {
                     //graphical formatting for in game graphics
                     slotLines[i - 1][0] = "Health: " + save.savedPlayerHealth + "/" + save.savedPlayerMaxHealth;
                     slotLines[i - 1][1] = "Level: " + save.savedPlayerLevel;
-                    slotLines[i - 1][2] = "Xp: " + save.savedPlayerXp + "/" + save.savedPlayerMaxXp;
+                    slotLines[i - 1][2] = "Xp: " + String.format("%.1f", save.savedPlayerXp) + "/" + save.savedPlayerMaxXp;
                     slotLines[i - 1][3] = "Total Xp: " + save.savedPlayerTotalXp;
                     slotLines[i - 1][4] = "Ammo: " + save.savedPlayerMaxAmmo;
                     slotLines[i - 1][5] = "Player Speed: " + save.savedPlayerSpeed;
-                    slotLines[i - 1][6] = "Bullet Speed: " + save.savedBulletSpeed;
-                    slotLines[i - 1][7] = "Enemy Spawn Rate: " + save.savedEnemySpawnRate + "ms";
-                    slotLines[i - 1][8] = "Enemy Dropped Xp: " + save.savedEnemyDroppedXp;
+                    slotLines[i - 1][6] = "Bullet Speed: " + String.format("%.1f", save.savedBulletSpeed);
+                    slotLines[i - 1][7] = "Enemy Dropped Xp: " + String.format("%.1f", save.savedEnemyDroppedXp);
                 } catch (Exception e) {
                     slotLines[i - 1][0] = "Corrupted Save";
                     slotLines[i - 1][1] = "";
@@ -600,7 +599,7 @@ public class MainMenu extends GameObject {
      */
     public void closeSaveScreen() {
         if (saveMenuState == 3) { //slide down
-            double screenBottom = this.getHeight() + 350;
+            double screenBottom = this.getHeight() + 450;
             animationSaveY += (screenBottom - animationSaveY) * ANIMATION_SPEED + 1; //moves save screen
             if (animationSaveY >= screenBottom) { //snapping
                 animationSaveY = screenBottom;

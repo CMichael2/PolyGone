@@ -7,6 +7,7 @@ public class DebugHUD extends GameObject {
 
     Player player; //reference to object
     PolyGone game;
+    EnemyManager enemyManager;
 
     //fps counter variables
     private double fps = 0.0; //do not change values
@@ -14,25 +15,27 @@ public class DebugHUD extends GameObject {
     private long fpsTimer = System.currentTimeMillis();
 
     //text display variables
-    private final Font FONT = new Font("OCR A Extended", Font.PLAIN, 15);
+    private final Font FONT = new Font("OCR A Extended", Font.PLAIN, 20);
     private boolean isVisible = false;
 
     /**
      * Constructor that initializes the game object and fields
-     * Pre: F3 key is pressed
+     * Pre: PolyGone, Player, and EnemyManager instances are initialized and not null
      * Post: Sets the size of this game object to fill the screen
      * @param game Parameter from PolyGone
      * @param player Parameter from Player
+     * @param enemyManager Parameter from Enemy Manager
      */
-    public DebugHUD(PolyGone game, Player player) {
+    public DebugHUD(PolyGone game, Player player, EnemyManager enemyManager) {
         this.game = game;
         this.player = player;
+        this.enemyManager = enemyManager;
         this.setBounds(0, 0, game.getWidth(), game.getHeight()); //sets location and size respectively
     }
 
     /**
      * Helper method that sets the game object and its contents(text, etc.) to visible
-     * Pre: F3 key is pressed
+     * Pre: The DebugHUD instance has been instantiated
      * Post: isVisible boolean variable is set to true or false
      * @param visible if it is true, this game object will become visible, and vice versa
      */
@@ -63,24 +66,24 @@ public class DebugHUD extends GameObject {
         //location relative to debug hud bounding box location and aligned with right side
         drawRightAlignedString(g2d, "Player xy: " + player.getX() + ", " + player.getY(), screenRightEdge, getHeight()-10, FONT);
 
-        int enemyCount = game.getEnemyCount();
+        int enemyCount = enemyManager.enemiesList.size();
         drawRightAlignedString(g2d, "Enemy count: " + enemyCount, screenRightEdge, getHeight()-25, FONT);
 
-        drawRightAlignedString(g2d, "FPS: " + fps, screenRightEdge, getHeight()-40, FONT);
+        drawRightAlignedString(g2d, "FPS: " + fps, screenRightEdge, getHeight()-45, FONT);
 
-        drawRightAlignedString(g2d, "Health: " + player.playerCurrentHealth, screenRightEdge, getHeight()- 55, FONT);
+        drawRightAlignedString(g2d, "Health: " + player.playerCurrentHealth, screenRightEdge, getHeight()- 65, FONT);
 
-        drawRightAlignedString(g2d, "Player total xp: " + player.totalPlayerXp, screenRightEdge, getHeight()- 70, FONT);
+        drawRightAlignedString(g2d, "Player total xp: " + player.totalPlayerXp, screenRightEdge, getHeight()- 85, FONT);
 
-        drawRightAlignedString(g2d, "Player xp level up requirements: " + player.playerXPBarMaxXP, screenRightEdge, getHeight()- 85, FONT);
+        drawRightAlignedString(g2d, "Player xp level up requirements: " + player.playerXPBarMaxXP, screenRightEdge, getHeight()- 105, FONT);
 
-        drawRightAlignedString(g2d, "Current player xp: " + String.format("%.2f", (double)player.currentPlayerXp), screenRightEdge, getHeight()-100, FONT);
+        drawRightAlignedString(g2d, "Current player xp: " + String.format("%.2f", player.currentPlayerXp), screenRightEdge, getHeight()-125, FONT);
 
-        drawRightAlignedString(g2d, "Current ammo count: " + player.currentAmmo, screenRightEdge, getHeight()- 115, FONT);
+        drawRightAlignedString(g2d, "Current ammo count: " + player.currentAmmo, screenRightEdge, getHeight()- 145, FONT);
 
-        drawRightAlignedString(g2d, "Max ammo: " + player.maxAmmo, screenRightEdge, getHeight()- 130, FONT);
+        drawRightAlignedString(g2d, "Max ammo: " + player.maxAmmo, screenRightEdge, getHeight()- 165, FONT);
 
-        drawRightAlignedString(g2d, "Enemy spawn rate: Every " + (double)(game.enemySpawnRate)/1000 + " seconds", screenRightEdge, getHeight() - 145, FONT);
+        drawRightAlignedString(g2d, "Enemy spawn rate: Every " + (double)(enemyManager.enemySpawnRate)/1000 + " seconds", screenRightEdge, getHeight() - 185, FONT);
     }
 
     /**
@@ -106,7 +109,7 @@ public class DebugHUD extends GameObject {
 
     /**
      * FPS calculator that uses a counter to check how many times the paint method in this class is run in one second
-     * Pre: DebugHUD is visible
+     * Pre: The game loop triggers a screen repaint frame tick
      * Post: The FPS count that is displayed in the debugHUD
      */
     private void calculateFPS() {

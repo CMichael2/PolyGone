@@ -16,7 +16,7 @@ public class SaveGame implements Serializable {
     public double savedBulletSpeed;
     public int savedEnemySpawnRate;
     public double savedEnemyDroppedXp;
-    public int unfilledSlot;
+    public boolean isFirstWin;
 
     /**
      * When called, it saves the value of specified objects/variables into a .ser save file that is named. The saved file can't be read by a human.
@@ -27,7 +27,7 @@ public class SaveGame implements Serializable {
      * @param mainMenu Parameter from MainMenu
      * @throws IOException In the event something goes wrong, it has a fallback and doesn't crash
      */
-    public void saveData(PolyGone game, Player player, MainMenu mainMenu) throws IOException {
+    public void saveData(PolyGone game, Player player, MainMenu mainMenu, EnemyManager enemyManager) throws IOException {
         savedPlayerHealth = player.playerCurrentHealth;
         savedPlayerMaxHealth = player.playerMaxHealth;
         savedPlayerLevel = player.playerLevel;
@@ -37,9 +37,9 @@ public class SaveGame implements Serializable {
         savedPlayerMaxAmmo = player.maxAmmo;
         savedPlayerSpeed = player.playerSpeed;
         savedBulletSpeed = player.bulletSpeed;
-        savedEnemySpawnRate = game.enemySpawnRate;
-        savedEnemyDroppedXp = game.enemyDroppedXp;
-        unfilledSlot = mainMenu.unfilledSaveSlot;
+        savedEnemySpawnRate = enemyManager.enemySpawnRate;
+        savedEnemyDroppedXp = enemyManager.enemyDroppedXp;
+        isFirstWin = game.firstWin;
 
         int saveNumber = game.saveSlotNumber;
 
@@ -113,7 +113,7 @@ public class SaveGame implements Serializable {
      * @param game Parameter from PolyGone
      * @param player Parameter from Player
      */
-    public void applyDataToGame(PolyGone game, Player player) {
+    public void applyDataToGame(PolyGone game, Player player, MainMenu mainMenu, EnemyManager enemyManager) {
         player.playerCurrentHealth = this.savedPlayerHealth;
         player.playerMaxHealth = this.savedPlayerMaxHealth;
         player.playerLevel = this.savedPlayerLevel;
@@ -123,8 +123,9 @@ public class SaveGame implements Serializable {
         player.maxAmmo = this.savedPlayerMaxAmmo;
         player.playerSpeed = this.savedPlayerSpeed;
         player.bulletSpeed = this.savedBulletSpeed;
-        game.enemySpawnRate = this.savedEnemySpawnRate;
-        game.enemyDroppedXp = this.savedEnemyDroppedXp;
+        enemyManager.enemySpawnRate = this.savedEnemySpawnRate;
+        enemyManager.enemyDroppedXp = this.savedEnemyDroppedXp;
+        game.firstWin = this.isFirstWin;
 
         System.out.println("Save data values applied");
     }

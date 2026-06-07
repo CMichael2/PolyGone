@@ -7,7 +7,7 @@ import java.awt.image.ConvolveOp; //used to scale up and down images
 import java.awt.image.Kernel; //a matrix used for math
 import java.io.IOException;
 
-public class WinMenu extends GameObject {
+public class DeathMenu extends GameObject {
 
     Player player; //reference to object
     PolyGone game;
@@ -38,7 +38,7 @@ public class WinMenu extends GameObject {
      * @param game Parameter from PolyGone
      * @param player Parameter from Player
      */
-    public WinMenu(PolyGone game, Player player, MainMenu mainMenu, EnemyManager enemyManager) {
+    public DeathMenu(PolyGone game, Player player, MainMenu mainMenu, EnemyManager enemyManager) {
         this.player = player;
         this.game = game;
         this.saveGame = new SaveGame();
@@ -54,7 +54,7 @@ public class WinMenu extends GameObject {
      * Post: isVisible boolean variable is set to true or false, resets mouse inputs to prevent instant clicking/selection, blurred background
      * @param visible if it is true, this game object will become visible, and vice versa
      */
-    public void setWinMenuVisible(boolean visible) {
+    public void setDeathMenuVisible(boolean visible) {
         this.isVisible = visible;
         GameMouseInput.isMouseLeftClickPressed = false;
         GameMouseInput.reset();
@@ -101,9 +101,8 @@ public class WinMenu extends GameObject {
             g2d.fillRect(0, 0, this.getWidth(), this.getHeight());
         }
 
-        drawWinText(g2d);
+        drawLoseText(g2d);
 
-        drawButtons(g2d, buttonX, KEEP_PLAYING_Y, GameMouseInput.mouseX, GameMouseInput.mouseY, "Keep Playing");
         drawButtons(g2d, buttonX, EXIT_TO_MAIN_MENU_Y, GameMouseInput.mouseX, GameMouseInput.mouseY, "Exit To Main Menu");
         drawButtons(g2d, buttonX, PLAY_AGAIN_Y, GameMouseInput.mouseX, GameMouseInput.mouseY, "Play Again");
         drawButtons(g2d, buttonX, QUIT_Y, GameMouseInput.mouseX, GameMouseInput.mouseY, "Quit");
@@ -113,8 +112,8 @@ public class WinMenu extends GameObject {
      * Draws the win text
      * @param g2d Abstract class passing
      */
-    public void drawWinText(Graphics2D g2d) {
-        String text = "YOU WIN";
+    public void drawLoseText(Graphics2D g2d) {
+        String text = "YOU DIED";
 
         g2d.setFont(new Font("OCR A Extended", Font.BOLD, 167));
         g2d.setColor(Color.WHITE);
@@ -209,19 +208,6 @@ public class WinMenu extends GameObject {
         int mouseY = GameMouseInput.mouseY;
 
         if (GameMouseInput.isMouseLeftClickPressed) {
-            //keep playing button
-            int kpx = buttonX - BUTTON_WIDTH / 2;
-            int kpy = KEEP_PLAYING_Y - BUTTON_HEIGHT / 2;
-            if (mouseX >= kpx && mouseX <= kpx + BUTTON_WIDTH && mouseY >= kpy && mouseY <= kpy + BUTTON_HEIGHT) {
-                game.setCurrentState(GameState.PLAYING);
-                this.setWinMenuVisible(false);
-
-                GameMouseInput.isMouseLeftClickPressed = false;
-                GameMouseInput.reset();
-                System.out.println("Player chose to continue playthrough indefinitely");
-                return;
-            }
-
             //exit to main menu button
             int emx = buttonX - BUTTON_WIDTH / 2;
             int emy = EXIT_TO_MAIN_MENU_Y - BUTTON_HEIGHT / 2;
@@ -260,7 +246,7 @@ public class WinMenu extends GameObject {
     }
 
     /**
-     * Blurs the background of anything behind the open menu by getting a pixel and its surrounding pixels
+     * Blurs the background of anything behind the open menu by getting a pixel and that pixels surrounding pixels
      * Mixes the colors together and outputs the result to make it look blurry
      * Also down and upscales to save processing power and smooths result to avoid blockiness
      * Pre: Win menu is visible

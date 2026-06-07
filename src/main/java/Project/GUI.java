@@ -12,7 +12,7 @@ public class GUI extends GameObject {
     Player player; //reference to object
     PolyGone game;
 
-    private Font font = new Font("OCR A Extended", Font.BOLD, 30);
+    private Font font = new Font("OCR A Extended", Font.BOLD, 38);
 
     private BufferedImage heartImage;
 
@@ -47,28 +47,28 @@ public class GUI extends GameObject {
             int textWidth = metrics.stringWidth(playerLevel);
 
             int x = (this.getWidth() - textWidth) / 2;
-            int y = 48;
+            int y = 56;
 
             g2d.drawString(playerLevel, x, y);
 
-            drawHealthBar(g2d, 57, 70, player.playerCurrentHealth, player.playerMaxHealth); //draws health bar
+            drawHealthBar(g2d, 57, 85, player.playerCurrentHealth, player.playerMaxHealth); //draws health bar
             if (heartImage != null) {
-                g2d.drawImage(heartImage, 28, 64, 40, 40, null); //adds heart sprite
+                g2d.drawImage(heartImage, 28, 74, 60, 60, null); //adds heart sprite
             }
 
-            drawAmmoBar(g2d, 57, this.getHeight() - 60, player.maxAmmo, player.currentAmmo);
+            drawAmmoBar(g2d, 57, this.getHeight() - 75, player.maxAmmo, player.currentAmmo);
 
-            drawAmmoCooldownBar(g2d, 57, this.getHeight() - 30, player.lastShotTime, player.shotCooldown);
+            drawAmmoCooldownBar(g2d, 57, this.getHeight() - 35, player.lastShotTime, player.shotCooldown);
 
-            int diameter = 40;
-            drawAmmoRegenCircle(g2d, 28, this.getHeight()-70, player.lastAmmoRegenTime, player.ammoRegenCooldown, diameter);
+            int diameter = 60;
+            drawAmmoRegenCircle(g2d, 28, this.getHeight()-90, player.lastAmmoRegenTime, player.ammoReloadCooldown, diameter);
         }
     }
 
     public void drawHealthBar(Graphics2D g2d, int x, int y, int currentHealth, int maxHealth) {
         //health bar dimensions
-        int barWidth = 200;
-        int barHeight = 25;
+        int barWidth = 300;
+        int barHeight = 35;
 
         //calculates the width of the health bar
         double healthPercentage = (double) currentHealth / maxHealth; //casts to double to avoid rounding to 0
@@ -96,7 +96,7 @@ public class GUI extends GameObject {
     public void drawXPBar(Graphics2D g2d, int x, int y, double currentPlayerXP, int playerXPBarMaxXP) {
         //xp bar dimensions
         int barWidth = this.getWidth() - (2 * x);
-        int barHeight = 35; //thickness of bar
+        int barHeight = 45; //thickness of bar
 
         //calculates the width of the xp bar
         double xpPercentage = currentPlayerXP / (double)playerXPBarMaxXP; //casts to double to avoid rounding to 0
@@ -123,8 +123,8 @@ public class GUI extends GameObject {
 
     public void drawAmmoBar(Graphics2D g2d, int x, int y, int maxAmmo, int currentAmmo) {
         //ammo bar dimensions
-        int barWidth = 200;
-        int barHeight = 25; //thickness of bar
+        int barWidth = 300;
+        int barHeight = 35; //thickness of bar
 
         //calculates the width of the ammo bar
         double ammoBarPercentage = (double) currentAmmo / maxAmmo; //casts to double to avoid rounding to 0
@@ -151,8 +151,8 @@ public class GUI extends GameObject {
 
     public void drawAmmoCooldownBar(Graphics2D g2d, int x, int y, long lastShotTime, long shotCooldown) {
         //ammo bar dimensions
-        int barWidth = 200;
-        int barHeight = 10; //thickness of bar
+        int barWidth = 300;
+        int barHeight = 15; //thickness of bar
         double ammoCooldownBarPercentage;
 
         long timeElapsed = System.currentTimeMillis() - lastShotTime;

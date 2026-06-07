@@ -4,45 +4,48 @@ import Framework.GameObject;
 import java.awt.*;
 import java.util.*;
 
+/*
+Handles enemy creation and initial targeting
+This class is a blueprint for every new enemy so it's methods are called for each new enemy created, which is why some methods like takeDamage() are here
+ */
+
 public class Enemies extends GameObject{
 
-
-
     //velocity variables for enemies
-    //update speed in main class
+    //update speed in enemy manager
     public double enemyVelocityX = 0;
     public double enemyVelocityY = 0;
 
-    public long enemyTimeOfSpawn = System.currentTimeMillis();
+    public long enemyTimeOfSpawn = System.currentTimeMillis(); //used to track enemy spawn time
 
     public static int enemyWidth = 20; //please update width and height to the same values to prevent ellipse hitboxes
     public static int enemyHeight = 20;
 
-    private int health = 3; //change enemy health here
-    public int enemyDamage = 20;
+    public int health = 3; //change enemy health here
+    public int enemyDamage = 20; //change enemy damage here
 
     @Override
     public void act() {}
 
-    //visible attributes
-    //spawn location is updated inside enemy spawn position method in game class
+    /**
+     * Constructor that initializes the game object and its attributes
+     * Pre: none
+     * Post: A new enemy instance with specified dimensions and colored green
+     */
     public Enemies() {
         this.setSize(enemyWidth,enemyHeight);
         this.setColor(Color.GREEN); //change color for enemies here
     }
 
-    //reduces the enemy health by 1 when called
-    public void takeDamage(int damage) {
-        this.health -= damage;
-    }
-
-    //checks if enemy is dead
-    public boolean isDead() {
-        return this.health <= 0;
-    }
-
-//called by main game class to update enemy movement towards the player
-//also handles enemy existence and collision update
+    /**
+     * Moves enemy towards player and checks if it collides with player
+     * Pre: Objects are not null
+     * Post: Enemy moved, enemy removed if collided with player
+     * @param mainGame Parameter from Game
+     * @param player Parameter from Player
+     * @param enemySpeed Parameter from Enemy Manager that sets the enemy speed used for movement calculations
+     * @return True if enemy collided with player, false otherwise
+     */
     public boolean enemyMovementUpdates(PolyGone mainGame, Player player, double enemySpeed) {
         double enemyTargetX;
         double enemyTargetY;
