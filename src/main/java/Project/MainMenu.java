@@ -45,6 +45,10 @@ public class MainMenu extends GameObject {
             {"Empty Slot", "", "", "", "", "", "", "", "", "", "", ""}
     };
 
+    private final int CREDITS_X = 1300;
+    private final int CREDITS_WIDTH = 1000;
+    private final int CREDITS_HEIGHT = 1000;
+
     //animation variables
     public int saveMenuState = 0; //0 is closed, 1 is opening, 2 is open, 3 is closing
     private double animationSaveY = 1200; //starting position of the save screen animation
@@ -55,6 +59,10 @@ public class MainMenu extends GameObject {
     private final int OFF_SCREEN_LEFT_X; //animation starting position
     private float bgAlpha = 1.0f; //1 is visible, 0 is hidden
     private final float FADE_SPEED = 0.05f;
+    public int creditsMenuState = 0; //0 is closed, 1 is opening, 2 is open, 3 is closing
+    private final int CREDITS_TARGET_Y;
+    private int creditsCurrentY;
+    private double animationCreditY;
 
     /**
      * Constructor that initializes the game object and fields
@@ -73,6 +81,7 @@ public class MainMenu extends GameObject {
         TARGET_OPEN_X = this.getWidth() / 6;
         OFF_SCREEN_LEFT_X = -(BUTTON_WIDTH / 2) - 50;
         currentButtonX = OFF_SCREEN_LEFT_X;
+        CREDITS_TARGET_Y = 550;
     }
 
     /**
@@ -133,6 +142,12 @@ public class MainMenu extends GameObject {
 
             drawSaveScreenButtons(g2d, SAVE_PLAY_BUTTON_X, currentY + SAVE_BUTTON_Y, GameMouseInput.mouseX, GameMouseInput.mouseY, "Play");
             drawSaveScreenButtons(g2d, SAVE_DELETE_BUTTON_X, currentY + SAVE_BUTTON_Y, GameMouseInput.mouseX, GameMouseInput.mouseY, "Delete");
+        }
+
+        if (creditsMenuState != 0) {
+            int creditsCurrentY = (int) animationCreditY;
+
+            drawCreditBox(g2d, CREDITS_X, creditsCurrentY);
         }
     }
 
@@ -345,6 +360,46 @@ public class MainMenu extends GameObject {
         g2d.drawString(text, textX, textY);
     }
 
+    public void drawCreditBox(Graphics2D g2d, int x, int y) {
+        x = x - CREDITS_WIDTH /2;
+        y = y - CREDITS_HEIGHT /2;
+
+        //inner button
+        g2d.setColor(new Color(148, 148, 148)); //light gray
+        g2d.fillRect(x, y, CREDITS_HEIGHT, CREDITS_WIDTH);
+
+        //outer border
+        g2d.setColor(Color.BLACK);
+
+
+        g2d.fillRect(x, y, CREDITS_WIDTH, 2); //top line
+        g2d.fillRect(x, y + CREDITS_HEIGHT - 2, CREDITS_WIDTH, 2); //bottom line
+        g2d.fillRect(x, y, 2, CREDITS_HEIGHT); //left line
+        g2d.fillRect(x + CREDITS_WIDTH - 2, y, 2, CREDITS_HEIGHT); //right line
+
+        int thickness = 4; //thickness of shadows
+        //shadows
+        //top and left shadows
+        g2d.setColor(new Color(255, 255, 255));
+        g2d.fillRect(x + 2, y + 2, CREDITS_WIDTH - 4, thickness);
+        g2d.fillRect(x + 2, y + 2, thickness, CREDITS_HEIGHT - 4);
+
+        //right and bottom shadows
+        g2d.setColor(new Color(85, 85, 85));
+
+        g2d.fillRect(x + 2, y + CREDITS_HEIGHT - 2 - thickness, CREDITS_WIDTH - 4, thickness);
+        g2d.fillRect(x + CREDITS_WIDTH - 2 - thickness, y + 2, thickness, CREDITS_HEIGHT - 4);
+
+        //button text centering and creation
+        String text = "Credits";
+        g2d.setFont(FONT);
+        g2d.setColor(new Color(50, 50, 50));
+        FontMetrics metrics = g2d.getFontMetrics(FONT);
+        int textX = x + (CREDITS_WIDTH - metrics.stringWidth(text)) / 2;
+        int textY = y + ((CREDITS_HEIGHT - metrics.getHeight()) / 2) + metrics.getAscent() + 7;
+        g2d.drawString(text, textX, textY);
+    }
+
     /**
      * Handles button logic and animations of main menu
      * Pre: Main menu is visible
@@ -385,8 +440,9 @@ public class MainMenu extends GameObject {
                     return;
                 }
                 game.saveSlotNumber = unfilledSaveSlot; //selects the save slot to be used for the new game
-                if (saveMenuState == 2) { //if the save screen menu is open, close it before closing the main menu
+                if (saveMenuState == 1 || saveMenuState == 2 || creditsMenuState == 1 || creditsMenuState == 2) { //if the save screen menu is open, close with the main menu
                     saveMenuState = 3;
+                    creditsMenuState = 3;
                     this.mainMenuState = 3;
                 } else if (saveMenuState == 0) {
                     this.mainMenuState = 3;
@@ -399,12 +455,15 @@ public class MainMenu extends GameObject {
             int cx = (int)currentButtonX - BUTTON_WIDTH / 2;
             int cy = CONTINUE_Y - BUTTON_HEIGHT / 2;
             if (mouseX >= cx && mouseX <= cx + BUTTON_WIDTH && mouseY >= cy && mouseY <= cy + BUTTON_HEIGHT) {
-                if (saveMenuState == 0) {
+                if (saveMenuState == 0 || saveMenuState == 3) {
+                    if (creditsMenuState == 2 || creditsMenuState == 1) { //if it is open it closes
+                        creditsMenuState = 3; //slides down
+                    }
                     loadSlotData(); //loads the data/details of save to be displayed on save frame/slot
                     saveMenuState = 1; //slides up
                     animationSaveY = this.getHeight() + 350;
-                } else if (saveMenuState == 2) { //if it is open it closes
-                    saveMenuState = 3; //slides down
+                } else if (saveMenuState == 1 || saveMenuState == 2) { //if open or opening, close it
+                    saveMenuState = 3;
                     selectedSave = 0;
                 }
 
@@ -421,10 +480,23 @@ public class MainMenu extends GameObject {
                 System.out.println("Player has opened settings menu");
                 return;
             }
-            //credits button (not coded yet)
+            //credits button
             int crx = (int)currentButtonX - BUTTON_WIDTH / 2;
             int cry = CREDITS_Y - BUTTON_HEIGHT / 2;
             if (mouseX >= crx && mouseX <= crx + BUTTON_WIDTH && mouseY >= cry && mouseY <= cry + BUTTON_HEIGHT) {
+                if (creditsMenuState == 0 || creditsMenuState == 3) {
+                    if (saveMenuState == 2 || saveMenuState == 1) { //if it is open it closes
+                        saveMenuState = 3; //slides down
+                        selectedSave = 0;
+                    }
+                    creditsMenuState = 1; //slides up
+                    animationCreditY = this.getHeight() + 350;
+                } else if (creditsMenuState == 1 || creditsMenuState == 2) { //if it is open it closes
+                    creditsMenuState = 3; //slides down
+                }
+
+                GameMouseInput.isMouseLeftClickPressed = false; //reset mouse inputs
+                GameMouseInput.reset();
                 System.out.println("Player has opened credits screen");
                 return;
             }
@@ -536,11 +608,14 @@ public class MainMenu extends GameObject {
                 }
             }
         }
-        animateMainMenuIn();
-        animateMainMenuOut();
+        animateMainMenu();
 
-        openSaveScreen();
-        closeSaveScreen();
+        animateCredits();
+
+        animateSaveScreen();
+
+        GameMouseInput.isMouseLeftClickPressed = false;
+        GameMouseInput.reset();
 
         this.repaint(); //do not remove, very important
     }
@@ -614,7 +689,7 @@ public class MainMenu extends GameObject {
      * Pre: Save menu state = 1
      * Post: The save selection screen moves up with a nice animation
      */
-    public void openSaveScreen() {
+    public void animateSaveScreen() {
         if (saveMenuState == 1) { //slide up
             animationSaveY -= (animationSaveY - SAVE_FRAME_Y) * ANIMATION_SPEED; //moves save screen
             if (animationSaveY - SAVE_FRAME_Y < 1) { //snapping at close distance
@@ -622,14 +697,6 @@ public class MainMenu extends GameObject {
                 saveMenuState = 2; //state 2 means visible
             }
         }
-    }
-
-    /**
-     * Save screen closing animation
-     * Pre: Save menu state = 3
-     * Post: The save selection screen moves down with a nice animation and disappears
-     */
-    public void closeSaveScreen() {
         if (saveMenuState == 3) { //slide down
             double screenBottom = this.getHeight() + 450;
             animationSaveY += (screenBottom - animationSaveY) * ANIMATION_SPEED + 1; //moves save screen
@@ -641,7 +708,32 @@ public class MainMenu extends GameObject {
         }
     }
 
-    private void animateMainMenuIn() {
+    /**
+     * Save screen closing animation
+     * Pre: Save menu state = 3
+     * Post: The save selection screen moves down with a nice animation and disappears
+     */
+
+    public void animateCredits() {
+        if (creditsMenuState == 1) { //slide up
+            animationCreditY -= (animationCreditY - CREDITS_TARGET_Y) * ANIMATION_SPEED; //moves save screen
+            if (animationCreditY - CREDITS_TARGET_Y < 1) { //snapping at close distance
+                animationCreditY = CREDITS_TARGET_Y;
+                creditsMenuState = 2; //state 2 means visible
+            }
+        }
+        if (creditsMenuState == 3) { //slide down
+            double screenBottom = this.getHeight() + 600;
+            animationCreditY += (screenBottom - animationCreditY) * ANIMATION_SPEED + 1; //moves save screen
+
+            if (animationCreditY >= screenBottom) {
+                animationCreditY = screenBottom;
+                creditsMenuState = 0; //hidden
+            }
+        }
+    }
+
+    private void animateMainMenu() {
         if (mainMenuState == 1) { //opening
             currentButtonX += (TARGET_OPEN_X - currentButtonX) * ANIMATION_SPEED;
             if (TARGET_OPEN_X - currentButtonX < 1) {
@@ -649,9 +741,6 @@ public class MainMenu extends GameObject {
                 mainMenuState = 2; //open
             }
         }
-    }
-
-    private void animateMainMenuOut() {
         if (mainMenuState == 3) { //closing
             bgAlpha -= FADE_SPEED; //fades background
             if (bgAlpha < 0.0f) {

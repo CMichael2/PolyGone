@@ -79,9 +79,9 @@ public class DebugHUD extends GameObject {
 
         drawRightAlignedString(g2d, "Current player xp: " + String.format("%.2f", player.currentPlayerXp), screenRightEdge, getHeight()-125, FONT);
 
-        drawRightAlignedString(g2d, "Current ammo count: " + player.currentAmmo, screenRightEdge, getHeight()- 145, FONT);
+        drawRightAlignedString(g2d, "Current ammo count: " + player.activeWeapon.currentAmmo, screenRightEdge, getHeight()- 145, FONT);
 
-        drawRightAlignedString(g2d, "Max ammo: " + player.maxAmmo, screenRightEdge, getHeight()- 165, FONT);
+        drawRightAlignedString(g2d, "Max ammo: " + player.activeWeapon.maxAmmo, screenRightEdge, getHeight()- 165, FONT);
 
         drawRightAlignedString(g2d, "Enemy spawn rate: Every " + (double)(enemyManager.enemySpawnRate)/1000 + " seconds", screenRightEdge, getHeight() - 185, FONT);
     }

@@ -21,7 +21,8 @@ public class Enemies extends GameObject{
     public static int enemyWidth = 20; //please update width and height to the same values to prevent ellipse hitboxes
     public static int enemyHeight = 20;
 
-    public int health = 3; //change enemy health here
+    private int maxHealth = 10;
+    public int health = 10; //change enemy health here
     public int enemyDamage = 20; //change enemy damage here
 
     @Override
@@ -47,9 +48,14 @@ public class Enemies extends GameObject{
      * @return True if enemy collided with player, false otherwise
      */
     public boolean enemyMovementUpdates(PolyGone mainGame, Player player, double enemySpeed) {
+        //movement variables
         double enemyTargetX;
         double enemyTargetY;
         double distanceForEnemies;
+        //color variables
+        double percentOfHealth = (double) this.health / (double) this.maxHealth;
+        int r;
+        int g;
 
         //calculating new target location for enemy
         enemyTargetX = player.getX() - this.getX();
@@ -70,13 +76,15 @@ public class Enemies extends GameObject{
         this.setX((int)(this.getX() + this.enemyVelocityX));
         this.setY((int)(this.getY() + this.enemyVelocityY));
 
-        if (this.health == 2) {
-            this.setColor(Color.YELLOW);
+        //health color
+        if (percentOfHealth > 0.5) {
+            r = (int) ((1.0 - percentOfHealth) * 2.0 * 255);
+            g = 255;
+        } else {
+            r = 255;
+            g = (int) ((percentOfHealth) * 2.0 * 255);
         }
-
-        if (this.health == 1) {
-            this.setColor(Color.RED);
-        }
+        this.setColor(new Color(r, g, 0));
 
         //removes enemy from array and viewport in main game class
         if (this.collides(player)) {

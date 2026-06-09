@@ -56,12 +56,42 @@ public class GUI extends GameObject {
                 g2d.drawImage(heartImage, 28, 74, 60, 60, null); //adds heart sprite
             }
 
-            drawAmmoBar(g2d, 57, this.getHeight() - 75, player.maxAmmo, player.currentAmmo);
+            drawSelectedWeaponText(g2d, 28, this.getHeight() - 100, player.activeWeapon.weaponName, player.currentWeaponIndex);
 
-            drawAmmoCooldownBar(g2d, 57, this.getHeight() - 35, player.lastShotTime, player.shotCooldown);
+            drawAmmoBar(g2d, 57, this.getHeight() - 75, player.activeWeapon.maxAmmo, player.activeWeapon.currentAmmo);
+
+            drawAmmoCooldownBar(g2d, 57, this.getHeight() - 35, player.activeWeapon.lastShotTime, player.activeWeapon.shotCooldown);
 
             int diameter = 60;
-            drawAmmoRegenCircle(g2d, 28, this.getHeight()-90, player.lastAmmoRegenTime, player.ammoReloadCooldown, diameter);
+            drawAmmoRegenCircle(g2d, 28, this.getHeight()-90, player.activeWeapon.lastAmmoRegenTime, player.activeWeapon.ammoReloadCooldown, diameter);
+        }
+    }
+
+    public void drawXPBar(Graphics2D g2d, int x, int y, double currentPlayerXP, int playerXPBarMaxXP) {
+        //xp bar dimensions
+        int barWidth = this.getWidth() - (2 * x);
+        int barHeight = 45; //thickness of bar
+
+        //calculates the width of the xp bar
+        double xpPercentage = currentPlayerXP / (double)playerXPBarMaxXP; //casts to double to avoid rounding to 0
+        xpPercentage = Math.max(0.0, Math.min(1.0, xpPercentage)); //makes sure the value is between 0 and 1
+        int fillWidth = (int) (barWidth * xpPercentage);
+
+        //draws black border rectangle
+        g2d.setColor(new Color(20, 20, 20));
+        g2d.fillRect(x, y, barWidth, barHeight);
+
+        //draws background xp bar
+        g2d.setColor(new Color(15, 55, 60)); //dark cyan color
+        g2d.fillRect(x + 3, y + 3, barWidth - 6, barHeight - 6);
+
+        //draws xp bar
+        if (fillWidth > 0) { //only draws if the thickness is valid
+            g2d.setColor(new Color(0, 170, 185)); //dark cyan shadow bar
+            g2d.fillRect(x + 3, y + 3, fillWidth - 6, barHeight - 6);
+
+            g2d.setColor(new Color(0, 225, 235)); //bright cyan xp bar
+            g2d.fillRect(x + 3, y + 3, fillWidth - 6, barHeight - 10);
         }
     }
 
@@ -93,32 +123,10 @@ public class GUI extends GameObject {
         }
     }
 
-    public void drawXPBar(Graphics2D g2d, int x, int y, double currentPlayerXP, int playerXPBarMaxXP) {
-        //xp bar dimensions
-        int barWidth = this.getWidth() - (2 * x);
-        int barHeight = 45; //thickness of bar
-
-        //calculates the width of the xp bar
-        double xpPercentage = currentPlayerXP / (double)playerXPBarMaxXP; //casts to double to avoid rounding to 0
-        xpPercentage = Math.max(0.0, Math.min(1.0, xpPercentage)); //makes sure the value is between 0 and 1
-        int fillWidth = (int) (barWidth * xpPercentage);
-
-        //draws black border rectangle
-        g2d.setColor(new Color(20, 20, 20));
-        g2d.fillRect(x, y, barWidth, barHeight);
-
-        //draws background xp bar
-        g2d.setColor(new Color(15, 55, 60)); //dark cyan color
-        g2d.fillRect(x + 3, y + 3, barWidth - 6, barHeight - 6);
-
-        //draws xp bar
-        if (fillWidth > 0) { //only draws if the thickness is valid
-            g2d.setColor(new Color(0, 170, 185)); //dark cyan shadow bar
-            g2d.fillRect(x + 3, y + 3, fillWidth - 6, barHeight - 6);
-
-            g2d.setColor(new Color(0, 225, 235)); //bright cyan xp bar
-            g2d.fillRect(x + 3, y + 3, fillWidth - 6, barHeight - 10);
-        }
+    public void drawSelectedWeaponText(Graphics2D g2d, int x, int y, String weaponName, int weaponIndex) {
+        g2d.setFont(new Font("OCR A Extended", Font.BOLD, 20));
+        g2d.setColor(Color.WHITE);
+        g2d.drawString("Selected weapon: " + (weaponIndex+1) + ", "+ weaponName, x, y);
     }
 
     public void drawAmmoBar(Graphics2D g2d, int x, int y, int maxAmmo, int currentAmmo) {
@@ -183,7 +191,7 @@ public class GUI extends GameObject {
     public void drawAmmoRegenCircle(Graphics2D g2d, int x, int y, long lastAmmoRegenTime, long ammoRegenCooldown, int diameter) {
         double ammoRegenBarPercentage = 0.0;
 
-        if (player.isReloading){
+        if (player.activeWeapon.isReloading){
             long timeElapsed = System.currentTimeMillis() - lastAmmoRegenTime;
 
             //calculate percentage of completion

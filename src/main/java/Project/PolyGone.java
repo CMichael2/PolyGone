@@ -196,8 +196,7 @@ public class PolyGone extends Game {
                     return;
                 }
 
-                player.playerMovementUpdate(this);
-                player.handlePlayerShooting(this, Bullets.getBulletsList());
+                player.act();
 
                 Bullets.bulletBehavior(this, player, enemyManager);
                 enemyManager.update();
@@ -501,7 +500,11 @@ public class PolyGone extends Game {
         player.playerXPBarMaxXP = 10 + (int)((Math.pow(player.playerLevel, 1.8)/4.0)+0.5);;
         player.currentPlayerXp = 0;
         player.totalPlayerXp = 0;
-        player.currentAmmo = player.maxAmmo;
+        player.currentWeaponIndex = 0;
+
+        player.weaponsList.clear();
+        player.addWeapon(0);
+        player.currentWeaponIndex = 0;
 
         upgradeMenu.numberOfRerollsLeft = upgradeMenu.startingNumberOfRerolls;
         firstWin = true;

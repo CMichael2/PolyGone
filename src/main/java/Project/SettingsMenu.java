@@ -178,14 +178,15 @@ public class SettingsMenu extends GameObject {
                 return;
             }
         }
-        openSettingsMenu();
+        animateSettingsMenu();
 
-        closeSettingsMenu();
+        GameMouseInput.isMouseLeftClickPressed = false;
+        GameMouseInput.reset();
 
         this.repaint(); //do not remove, very important
     }
 
-    public void openSettingsMenu() {
+    public void animateSettingsMenu() {
         if (settingsMenuState == 1) { //slide up
             animationSaveY -= (animationSaveY - settingsY) * ANIMATION_SPEED; //moves save screen
             if (animationSaveY - settingsY < 1) { //snapping
@@ -193,9 +194,6 @@ public class SettingsMenu extends GameObject {
                 settingsMenuState = 2; //state 2 means visible
             }
         }
-    }
-
-    public void closeSettingsMenu() {
         if (settingsMenuState == 3) { //slide down
             double screenBottom = this.getHeight() + 50;
             animationSaveY += (screenBottom - animationSaveY) * ANIMATION_SPEED + 1; //moves save screen

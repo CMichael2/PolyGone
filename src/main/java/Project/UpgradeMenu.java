@@ -67,7 +67,7 @@ public class UpgradeMenu extends GameObject {
 
             do {
                 isDuplicate = false;
-                rolledOption = random.nextInt(5); //number of options
+                rolledOption = random.nextInt(6); //number of options
 
                 for (int k = 0; k < i; k++) {
                     if (cardOptions[k] == rolledOption) {
@@ -262,46 +262,63 @@ public class UpgradeMenu extends GameObject {
         //upgrade options text
         g2d.setFont(new Font("Consolas", Font.PLAIN, 25));
         String text;
-        switch (option) {
-            case 0 : text = "More Ammo"; break;
-            case 1 : text = "More Bullet Speed & Range"; break;
-            case 2 : text = "More Player Speed"; break;
-            case 3 : text = "More Max Health"; break;
-            case 4 : text = "More XP"; break;
-            default : text = "Error in options text"; break; //if the option generated is invalid, it will output error message
-        }
-
-        int percentageIncrease = 0;
+        //switch (option) {
+            //case 0 : text = "More Ammo"; break;
+            //case 1 : text = "More Bullet Speed & Range"; break;
+            //case 2 : text = "More Player Speed"; break;
+            //case 3 : text = "More Max Health"; break;
+            //case 4 : text = "More XP"; break;
+            //case 5: text = "Minigon"; break;
+            //default : text = "Error in options text"; break; //if the option generated is invalid, it will output error message
+        //}
 
         switch (rarity) { //determines the percentage increase of the player/weapon attribute based on the rarity of the card
-            case 0: percentageIncrease = 5; break;
-            case 1: percentageIncrease = 10; break;
-            case 2: percentageIncrease = 20; break;
-            case 3: percentageIncrease = 40; break;
-            case 4: percentageIncrease = 67; break;
+            case 0:
+                switch (option) {
+                    case 0: text = "Improve durability (+5% Health) "; break;
+                    case 1: text = "";
+                    default: text = "Error in drawCardText method in UpgradeMenu class"; break;
+                }
+                break;
+            case 1:
+                break;
+            case 2:
+                break;
+            case 3:
+                break;
+            case 4:
+                break;
         }
 
-        String description = "+" + percentageIncrease + "% " + text;
-        g2d.drawString(description, x - g2d.getFontMetrics().stringWidth(description) / 2, y);
+        g2d.drawString(text, x - g2d.getFontMetrics().stringWidth(text) / 2, y);
     }
 
     private void applyUpgrade(int rarity, int option) {
         double multiplier = 1.0;
         switch (rarity) {
-            case 0: multiplier = 1.05; System.out.println("Player selected a common upgrade"); break;
-            case 1: multiplier = 1.10; System.out.println("Player selected a uncommon upgrade"); break;
-            case 2: multiplier = 1.20; System.out.println("Player selected a rare upgrade"); break;
-            case 3: multiplier = 1.40; System.out.println("Player selected a epic upgrade"); break;
-            case 4: multiplier = 1.67; System.out.println("Player selected a legendary upgrade"); break;
+            case 0:
+                switch (option) {
+                    case 0:
+                }
+                break;
+            case 1:
+                break;
+            case 2:
+                break;
+            case 3:
+                break;
+            case 4:
+                break;
         }
 
-        switch (option) {
-            case 0: player.maxAmmo = (int)((player.maxAmmo * multiplier) + 0.5); break; //rounds up
-            case 1: player.bulletSpeed = (int)((player.bulletSpeed * multiplier) + 0.5); break;
-            case 2: player.playerSpeed = (int)((player.playerSpeed * multiplier) + 0.5); break;
-            case 3: player.playerMaxHealth = (int)((player.playerMaxHealth * multiplier) + 0.5); break;
-            case 4: enemyManager.enemyDroppedXp = enemyManager.enemyDroppedXp*multiplier; break;
-        }
+        //switch (option) {
+            //case 0: player.activeWeapon.maxAmmo = (int)((player.activeWeapon.maxAmmo * multiplier) + 0.5); break; //rounds up
+            //case 1: player.activeWeapon.bulletSpeed = (int)((player.activeWeapon.bulletSpeed * multiplier) + 0.5); break;
+            //case 2: player.playerSpeed = (int)((player.playerSpeed * multiplier) + 0.5); break;
+            //case 3: player.playerMaxHealth = (int)((player.playerMaxHealth * multiplier) + 0.5); break;
+            //case 4: enemyManager.enemyDroppedXp = enemyManager.enemyDroppedXp*multiplier; break;
+            //case 5: player.addWeapon(4);
+        //}
         player.playerCurrentHealth = player.playerMaxHealth; //heals player
     }
 

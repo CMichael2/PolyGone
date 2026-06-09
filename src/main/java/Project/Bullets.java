@@ -12,6 +12,7 @@ Creation is handled in player class
 public class Bullets extends GameObject {
 
     private static ArrayList<Bullets> bulletsList = new ArrayList<>(); //creates arraylist of bullets
+    public static double bulletDamage;
 
     /**
      * Getter method for array list of bullets
@@ -90,7 +91,7 @@ public class Bullets extends GameObject {
             //calls ray casting enemy collision method to check for collisions with bullets
             //or uses regular collision checking inherited from game object class
             if (e.collides(b) || bulletPathIntersectsEnemy(b, bulletPrevX, bulletPrevY, e)) {
-                e.health -= 1; //updates enemy health
+                e.health -= bulletDamage; //updates enemy health
 
                 //removes enemy when killed
                 if (e.health <= 0) {

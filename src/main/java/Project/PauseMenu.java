@@ -173,7 +173,7 @@ public class PauseMenu extends GameObject {
             if (mouseX >= ex && mouseX <= ex + buttonWidth && mouseY >= ey && mouseY <= ey + buttonHeight) {
                 isPauseMenuVisible = false;
                 game.openSettingsMenu();
-                closePauseMenu();
+                animatePauseMenu();
                 GameMouseInput.reset();
                 GameMouseInput.isMouseLeftClickPressed = false;
                 System.out.println("Player opened settings menu");
@@ -196,14 +196,15 @@ public class PauseMenu extends GameObject {
                 return;
             }
         }
-        openPauseMenu();
+        animatePauseMenu();
 
-        closePauseMenu();
+        GameMouseInput.isMouseLeftClickPressed = false;
+        GameMouseInput.reset();
 
         this.repaint(); //do not remove, very important
     }
 
-    public void openPauseMenu() {
+    public void animatePauseMenu() {
         if (pauseMenuState == 1) { //slide up
             animationSaveY -= (animationSaveY - pauseY) * ANIMATION_SPEED; //moves save screen
             if (animationSaveY - pauseY < 1) { //snapping
@@ -211,9 +212,6 @@ public class PauseMenu extends GameObject {
                 pauseMenuState = 2; //state 2 means visible
             }
         }
-    }
-
-    public void closePauseMenu() {
         if (pauseMenuState == 3) { //slide down
             double screenBottom = this.getHeight() + 50;
             animationSaveY += (screenBottom - animationSaveY) * ANIMATION_SPEED + 1; //moves save screen

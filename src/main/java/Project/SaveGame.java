@@ -34,9 +34,9 @@ public class SaveGame implements Serializable {
         savedPlayerXp = player.currentPlayerXp;
         savedPlayerMaxXp = player.playerXPBarMaxXP;
         savedPlayerTotalXp = player.totalPlayerXp;
-        savedPlayerMaxAmmo = player.maxAmmo;
+        savedPlayerMaxAmmo = player.activeWeapon.maxAmmo;
         savedPlayerSpeed = player.playerSpeed;
-        savedBulletSpeed = player.bulletSpeed;
+        savedBulletSpeed = player.activeWeapon.bulletSpeed;
         savedEnemySpawnRate = enemyManager.enemySpawnRate;
         savedEnemyDroppedXp = enemyManager.enemyDroppedXp;
         isFirstWin = game.firstWin;
@@ -120,9 +120,9 @@ public class SaveGame implements Serializable {
         player.currentPlayerXp = this.savedPlayerXp;
         player.playerXPBarMaxXP = this.savedPlayerMaxXp;
         player.totalPlayerXp = this.savedPlayerTotalXp;
-        player.maxAmmo = this.savedPlayerMaxAmmo;
+        player.activeWeapon.maxAmmo = this.savedPlayerMaxAmmo;
         player.playerSpeed = this.savedPlayerSpeed;
-        player.bulletSpeed = this.savedBulletSpeed;
+        player.activeWeapon.bulletSpeed = this.savedBulletSpeed;
         enemyManager.enemySpawnRate = this.savedEnemySpawnRate;
         enemyManager.enemyDroppedXp = this.savedEnemyDroppedXp;
         game.firstWin = this.isFirstWin;

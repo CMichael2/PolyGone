@@ -18,7 +18,7 @@ public class EnemyManager {
     public int baseEnemySpawnRate = 1500;
     public int enemySpawnRate = 1500; //used to determine the enemy spawn rate in milliseconds
     private boolean isFirstEnemy = true; //used to begin spawning of enemies
-    public double enemyDroppedXp = 1.0;
+    public double enemyDroppedXp = 200.0;
 
     /**
      * Constructor that initializes the game object and its attributes
