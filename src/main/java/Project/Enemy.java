@@ -2,14 +2,13 @@ package Project;
 
 import Framework.GameObject;
 import java.awt.*;
-import java.util.*;
 
 /*
 Handles enemy creation and initial targeting
 This class is a blueprint for every new enemy so it's methods are called for each new enemy created, which is why some methods like takeDamage() are here
  */
 
-public class Enemies extends GameObject{
+public class Enemy extends GameObject{
 
     //velocity variables for enemies
     //update speed in enemy manager
@@ -21,8 +20,8 @@ public class Enemies extends GameObject{
     public static int enemyWidth = 20; //please update width and height to the same values to prevent ellipse hitboxes
     public static int enemyHeight = 20;
 
-    private int maxHealth = 10;
-    public int health = 10; //change enemy health here
+    public static double maxHealth = 10;
+    public double health = maxHealth; //change enemy health here
     public int enemyDamage = 20; //change enemy damage here
 
     @Override
@@ -33,7 +32,7 @@ public class Enemies extends GameObject{
      * Pre: none
      * Post: A new enemy instance with specified dimensions and colored green
      */
-    public Enemies() {
+    public Enemy() {
         this.setSize(enemyWidth,enemyHeight);
         this.setColor(Color.GREEN); //change color for enemies here
     }

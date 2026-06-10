@@ -31,6 +31,17 @@ public class Player extends GameObject {
     public static ArrayList<Weapon> weaponsList = new ArrayList<>();
     public int currentWeaponIndex = 0;
     Weapon activeWeapon;
+    public boolean hasWeapon2 = false; //pistol
+    public boolean hasWeapon3 = false; //rifle
+    public boolean hasWeapon4 = false; //sniper
+    public boolean hasWeapon5 = false; //miniGon
+    public boolean hasWeapon6 = false; //revolver
+    public boolean hasWeapon7 = false; //exo
+    public boolean hasWeapon8 = false; //ICBM
+    public boolean hasWeapon9 = false; //laser
+    public boolean hasWeapon10 = false; //boomerang
+    public boolean hasWeapon11 = false; //homing
+    public boolean hasWeapon12 = false; //sentry
 
     public Player(PolyGone mainGame, EnemyManager enemyManager) { //sets attributes for player game object
         this.setSize(40, 40);
@@ -89,56 +100,64 @@ public class Player extends GameObject {
 
         switch (weaponID) {
             case 0:
-                newWeapon = new Weapon(this.game, this, 12, 300, 4, 15, 2000, "glock19");
+                newWeapon = new Weapon(this.game, this, 12, 300, 4, 15, 2000, 400,"glock19");
                 newWeapon.weaponName = "StartingGun"; //glock-19
                 break;
 
             case 1:
-                newWeapon = new Weapon(this.game, this, 10, 250, 2, 20, 2500, "glock40");
+                newWeapon = new Weapon(this.game, this, 10, 250, 3, 20, 2500, 550,"glock40");
                 newWeapon.weaponName = "Pistol"; //glock-40
                 break;
 
             case 2:
-                newWeapon = new Weapon(this.game, this, 18, 200, 3, 30, 4000, "ar15");
+                newWeapon = new Weapon(this.game, this, 18, 200, 4, 30, 4000, 850,"ar15");
                 newWeapon.weaponName = "Rifle"; //AR-15
                 break;
 
-            case 3:
-                newWeapon = new Weapon(this.game, this, 25, 1000, 20, 5, 5000, "m82");
+            case 3: //add periceing
+                newWeapon = new Weapon(this.game, this, 25, 1000, 20, 5, 5000, 1000,"m82");
                 newWeapon.weaponName = "Sniper"; //M82 sniper
                 break;
 
             case 4:
-                newWeapon = new Weapon(this.game, this, 20, 50, 2, 67, 15000, "minigun");
+                newWeapon = new Weapon(this.game, this, 20, 50, 2, 67, 15000, 200,"minigun");
                 newWeapon.weaponName = "Minigun"; //minigun134
                 break;
 
             case 5:
-                newWeapon = new Weapon(this.game, this, 15, 250, 5, 7, 3000, "44mag");
+                newWeapon = new Weapon(this.game, this, 15, 250, 5, 7, 3000, 400,"44mag");
                 newWeapon.weaponName = "Revolver"; //44-magnum
                 break;
 
             case 6:
                 //makes an explosion on impact that does splash damage
-                newWeapon = new Weapon(this.game, this, 8, 400, 3, 10, 3000, "exo");
+                newWeapon = new Weapon(this.game, this, 8, 400, 3, 10, 3000, 600, "exo");
                 newWeapon.weaponName = "ExoGun"; //EXO
                 break;
 
             case 7:
                 //makes an explosion on impact that instantly kills nearby enemies
                 //maybe also flies through enemies before impacting
-                newWeapon = new Weapon(this.game, this, 5, 10000, 100, 3, 50000, "icbm");
+                newWeapon = new Weapon(this.game, this, 5, 10000, 100, 3, 50000, 1500, "icbm");
                 newWeapon.weaponName = "ICBM"; //intercontinental ballistic missile
                 break;
 
             case 8:
                 //looks like a beam but each section(bullet) does a bit of damage that adds up as dozens of bullets shoot out at once
-                newWeapon = new Weapon(this.game, this, 20, 25, 0.5, 100, 10000, "laser");
+                newWeapon = new Weapon(this.game, this, 20, 25, 0.5, 100, 10000, 750, "laser");
                 newWeapon.weaponName = "Laser";
                 break;
 
             case 9:
                 //boomerang that flies through enemies, damaging them and comes back
+                break;
+
+            case 10:
+                //Homing missile launcher
+                break;
+
+            case 11:
+                //Sentry that spawns in middle of map and auto shoots enemies for player (uses rifle stats)
                 break;
         }
 
@@ -210,56 +229,56 @@ public class Player extends GameObject {
 
         if (mainGame.isKeyPressed(KeyEvent.VK_3)) {
             if (weaponsList.size() > 2 && currentWeaponIndex != 2) {
-                currentWeaponIndex = 3;
+                currentWeaponIndex = 2;
                 System.out.println("Player switched to: " + weaponsList.get(1).weaponName);
             }
         }
 
         if (mainGame.isKeyPressed(KeyEvent.VK_4)) {
             if (weaponsList.size() > 3 && currentWeaponIndex != 3) {
-                currentWeaponIndex = 4;
+                currentWeaponIndex = 3;
                 System.out.println("Player switched to: " + weaponsList.get(1).weaponName);
             }
         }
 
         if (mainGame.isKeyPressed(KeyEvent.VK_5)) {
             if (weaponsList.size() > 4 && currentWeaponIndex != 4) {
-                currentWeaponIndex = 5;
+                currentWeaponIndex = 4;
                 System.out.println("Player switched to: " + weaponsList.get(1).weaponName);
             }
         }
 
         if (mainGame.isKeyPressed(KeyEvent.VK_6)) {
             if (weaponsList.size() > 5 && currentWeaponIndex != 5) {
-                currentWeaponIndex = 6;
+                currentWeaponIndex = 5;
                 System.out.println("Player switched to: " + weaponsList.get(1).weaponName);
             }
         }
 
         if (mainGame.isKeyPressed(KeyEvent.VK_7)) {
             if (weaponsList.size() > 6 && currentWeaponIndex != 6) {
-                currentWeaponIndex = 7;
+                currentWeaponIndex = 6;
                 System.out.println("Player switched to: " + weaponsList.get(1).weaponName);
             }
         }
 
         if (mainGame.isKeyPressed(KeyEvent.VK_8)) {
             if (weaponsList.size() > 7 && currentWeaponIndex != 7) {
-                currentWeaponIndex = 8;
+                currentWeaponIndex = 7;
                 System.out.println("Player switched to: " + weaponsList.get(1).weaponName);
             }
         }
 
         if (mainGame.isKeyPressed(KeyEvent.VK_9)) {
             if (weaponsList.size() > 8 && currentWeaponIndex != 8) {
-                currentWeaponIndex = 9;
+                currentWeaponIndex = 8;
                 System.out.println("Player switched to: " + weaponsList.get(1).weaponName);
             }
         }
 
         if (mainGame.isKeyPressed(KeyEvent.VK_0)) {
             if (weaponsList.size() > 9 && currentWeaponIndex != 9) {
-                currentWeaponIndex = 10;
+                currentWeaponIndex = 9;
                 System.out.println("Player switched to: " + weaponsList.get(1).weaponName);
             }
         }

@@ -5,6 +5,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage; //off-screen canvas
 import java.awt.image.ConvolveOp; //used to scale up and down images
 import java.awt.image.Kernel; //a matrix used for math
+import java.util.ArrayList;
 import java.util.Random;
 
 public class UpgradeMenu extends GameObject {
@@ -67,7 +68,7 @@ public class UpgradeMenu extends GameObject {
 
             do {
                 isDuplicate = false;
-                rolledOption = random.nextInt(6); //number of options
+                rolledOption = random.nextInt(10); //number of options
 
                 for (int k = 0; k < i; k++) {
                     if (cardOptions[k] == rolledOption) {
@@ -80,14 +81,14 @@ public class UpgradeMenu extends GameObject {
             int roll = random.nextInt(100) + 1;
 
             //percentage based rarity rolling
-            if (roll <= 60) {
-                cardRarities[i] = 0; //60%
-            } else if (roll <= 85) {
-                cardRarities[i] = 1; //25%
-            } else if (roll <= 95) {
-                cardRarities[i] = 2; //10%
+            if (roll <= 70) {
+                cardRarities[i] = 0; //70%
+            } else if (roll <= 90) {
+                cardRarities[i] = 1; //20%
+            } else if (roll <= 96) {
+                cardRarities[i] = 2; //6%
             } else if (roll <= 99) {
-                cardRarities[i] = 3; //4%
+                cardRarities[i] = 3; //3%
             } else {
                 cardRarities[i] = 4; //1%
             }
@@ -261,64 +262,469 @@ public class UpgradeMenu extends GameObject {
 
         //upgrade options text
         g2d.setFont(new Font("Consolas", Font.PLAIN, 25));
-        String text;
-        //switch (option) {
-            //case 0 : text = "More Ammo"; break;
-            //case 1 : text = "More Bullet Speed & Range"; break;
-            //case 2 : text = "More Player Speed"; break;
-            //case 3 : text = "More Max Health"; break;
-            //case 4 : text = "More XP"; break;
-            //case 5: text = "Minigon"; break;
-            //default : text = "Error in options text"; break; //if the option generated is invalid, it will output error message
-        //}
+        String text1 = "";
+        String text2 = "";
+        String text3 = "";
+        String text4 = "";
 
         switch (rarity) { //determines the percentage increase of the player/weapon attribute based on the rarity of the card
             case 0:
                 switch (option) {
-                    case 0: text = "Improve durability (+5% Health) "; break;
-                    case 1: text = "";
-                    default: text = "Error in drawCardText method in UpgradeMenu class"; break;
+                    case 0:
+                        text1 = "Improve durability";
+                        text2 = "+5% Max Health";
+                        break;
+                    case 1:
+                        text1 = "Collect more sides";
+                        text2 = "+5% Xp Gain";
+                        break;
+                    case 2:
+                        text1 = "Move faster";
+                        text2 = "+5% Speed";
+                        break;
+                    case 3:
+                        text1 = "Store more circles";
+                        text2 = "+5% Max Ammo";
+                        text3 = "To CURRENT Weapon";
+                        break;
+                    case 4:
+                        text1 = "Circles fly farther";
+                        text2 = "+5% Range";
+                        text3 = "To CURRENT Weapon";
+                        break;
+                    case 5:
+                        text1 = "Circles fly faster";
+                        text2 = "+5% Projectile Speed" ;
+                        text3 = "To CURRENT Weapon";
+                        break;
+                    case 6:
+                        text1 = "Kill enemies faster";
+                        text2 = "-5% Attack Cooldown";
+                        text3 = "To CURRENT Weapon";
+                        break;
+                    case 7:
+                        text1 = "Kill enemies easier";
+                        text2 = "+5% Weapon Damage";
+                        text3 = "To CURRENT Weapon";
+                        break;
+                    case 8:
+                        text1 = "Reload Faster";
+                        text2 = "-5% Reload Time";
+                        text3 = "To CURRENT Weapon";
+                        break;
+                    case 9:
+                        if (!player.hasWeapon2) {
+                            text1 = "Unlock new weapon";
+                            text2 = "PistolGon";
+                        } else {
+                            text1 = "Weaken your enemies";
+                            text2 = "-5% Enemy Health";
+                        }
+                        break;
+                    default:
+                        text1 = "Error in drawCardText method";
+                        text2 = "Error in UpgradeMenu class";
+                        break;
                 }
                 break;
             case 1:
+                switch (option) {
+                    case 0:
+                        text1 = "Increase durability";
+                        text2 = "+10% Max Health";
+                        break;
+                    case 1:
+                        text1 = "Collect a lot more";
+                        text2 = "sides";
+                        text3 = "+10% Xp Gain";
+                        break;
+                    case 2:
+                        text1 = "Move much faster";
+                        text2 = "+10% Speed";
+                        break;
+                    case 3:
+                        text1 = "Store many circles";
+                        text2 = "+10% Max Ammo";
+                        text3 = "To CURRENT Weapon";
+                        break;
+                    case 4:
+                        text1 = "Circles fly to the";
+                        text2 = "far lands";
+                        text3 = "+10% Range";
+                        text4 = "To CURRENT Weapon";
+                        break;
+                    case 5:
+                        text1 = "Circles approach";
+                        text2 = "terminal velocity";
+                        text3 = "+10% Projectile Speed";
+                        text4 = "To CURRENT Weapon";
+                        break;
+                    case 6:
+                        text1 = "Slice & Dice";
+                        text2 = "-10% Attack Cooldown";
+                        text3 = "To CURRENT Weapon";
+                        break;
+                    case 7:
+                        text1 = "Gain the strength";
+                        text2 = "of many sides";
+                        text3 = "+10% Weapon Damage";
+                        text4 = "To CURRENT Weapon";
+                        break;
+                    case 8:
+                        text1 = "Have you tried";
+                        text2 = "switching to another";
+                        text3 = "weapon while reloading?";
+                        text4 = "-10% Weapon Reload Time";
+                        break;
+                    case 9:
+                        if (!player.hasWeapon3) {
+                            text1 = "Unlock new weapon";
+                            text2 = "RifleGon";
+                        } else if (!player.hasWeapon6){
+                            text1 = "Unlock new weapon";
+                            text2 = "RevolverGon";
+                        } else {
+                            text1 = "Weaken your enemies";
+                            text2 = "-10% Enemy Health";
+                        }
+                        break;
+                    default:
+                        text1 = "Error in drawCardText method";
+                        text2 = "Error in UpgradeMenu class";
+                        break;
+                }
                 break;
             case 2:
+                switch (option) {
+                    case 0:
+                        text1 = "This enchanted apple..";
+                        text2 = "..its top notch!";
+                        text3 = "+25% Max Health";
+                        break;
+                    case 1:
+                        text1 = "How much more do";
+                        text2 = "you need???";
+                        text3 = "+25% Xp Gain";
+                        break;
+                    case 2:
+                        text1 = "Feel the wrath of";
+                        text2 = "a thousand enemies";
+                        text3 = "+25% More Enemies";
+                        break;
+                    case 3:
+                        text1 = "Bottomless barrel";
+                        text2 = "or Shulker box?";
+                        text3 = "+25% Max Ammo";
+                        text4 = "To CURRENT Weapon";
+                        break;
+                    case 4:
+                        text1 = "Circles fly into";
+                        text2 = "the backrooms";
+                        text3 = "+25% Range";
+                        text4 = "To CURRENT Weapon";
+                        break;
+                    case 5:
+                        text1 = "Even Raymond can't";
+                        text2 = "out run the circles now";
+                        text3 = "+25% Projectile Speed ";
+                        text4 = "To CURRENT Weapon";
+                        break;
+                    case 6:
+                        text1 = "MiniGon? No, but close...";
+                        text2 = "-25% Weapon Attack Cooldown";
+                        text3 = "To CURRENT Weapon";
+                        break;
+                    case 7:
+                        text1 = "Why do they seem so weak";
+                        text2 = "+25% Damage";
+                        text3 = "To CURRENT Weapon";
+                        break;
+                    case 8:
+                        text1 = "Lets go gambling!";
+                        text2 = "+1 Rerolls";
+                        break;
+                    case 9:
+                        if (!player.hasWeapon4) {
+                            text1 = "Unlock new weapon";
+                            text2 = "SniperGon";
+                        } else {
+                            text1 = "Weaken your enemies";
+                            text2 = "-15% Enemy Health";
+                        }
+                        break;
+                    default:
+                        text1 = "Error in drawCardText method";
+                        text2 = "Error in UpgradeMenu class";
+                        break;
+                }
                 break;
             case 3:
+                switch (option) {
+                    case 0:
+                        if (!player.hasWeapon7) {
+                            text1 = "Unlock new weapon";
+                            text2 = "ExoGon";
+                        } else {
+                            text1 = "Weaken your enemies";
+                            text2 = "-20% Enemy Health";
+                        }
+                        break;
+                    case 1:
+                        text1 = "You feel your shape ";
+                        text2 = "growing stronger every kill...";
+                        text3 = "+50% Xp Gain";
+                        break;
+                    case 2:
+                        text1 = "Feel the wrath of ";
+                        text2 = "a million enemies!";
+                        text3 = "+50% More Enemies";
+                        break;
+                    case 3:
+                        text1 = "All the circles in the world!";
+                        text2 = "+50% Max Ammo";
+                        text3 = "To CURRENT Weapon";
+                        break;
+                    case 4:
+                        if (!player.hasWeapon9) {
+                            text1 = "Unlock new weapon";
+                            text2 = "LaserGon";
+                        } else {
+                            text1 = "Weaken your enemies";
+                            text2 = "-20% Enemy Health";
+                        }
+                        break;
+                    case 5:
+                        text1 = "One iron, 4 planks";
+                        text2 = "Get A Shield";
+                        break;
+                    case 6:
+                        text1 = "Just use a MiniGon at this point";
+                        text2 = "-50% Attack Cooldown";
+                        text3 = "To CURRENT Weapon";
+                        break;
+                    case 7:
+                        text1 = "One shot enemies";
+                        text2 = "+50% Weapon Damage";
+                        text3 = "To CURRENT Weapon";
+                        break;
+                    case 8:
+                        text1 = "Lets go gambling! x3";
+                        text2 = "+3 Rerolls";
+                        break;
+                    case 9:
+                        if (!player.hasWeapon5) {
+                            text1 = "Unlock new weapon";
+                            text2 = "MiniGon";
+                        } else {
+                            text1 = "Weaken your enemies";
+                            text2 = "-20% Enemy Health";
+                        }
+                        break;
+                    default:
+                        text1 = "Error in drawCardText method";
+                        text2 = "Error in UpgradeMenu class";
+                        break;
+                }
                 break;
             case 4:
+                switch (option) {
+                    case 0:
+                    case 1:
+                    case 2:
+                        if (!player.hasWeapon8) {
+                            text1 = "Unlock new weapon";
+                            text2 = "ICBM";
+                        } else {
+                            text1 = "Weaken your enemies";
+                            text2 = "-20% Enemy Health";
+                        }
+                        break;
+                    case 3:
+                    case 4:
+                    case 5:
+                        if (!player.hasWeapon12) {
+                            text1 = "Unlock new weapon";
+                            text2 = "Sentry";
+                        } else {
+                            text1 = "Weaken your enemies";
+                            text2 = "-20% Enemy Health";
+                        }
+                        break;
+                    case 6:
+                    case 7:
+                    case 8:
+                        if (!player.hasWeapon11) {
+                            text1 = "Unlock new weapon";
+                            text2 = "Homing missile";
+                        } else {
+                            text1 = "Weaken your enemies";
+                            text2 = "-20% Enemy Health";
+                        }
+                        break;
+                    case 9:
+                        text1 = "Nuke";
+                        text2 = "Instantly kill all enemies";
+                        text3 = "on screen";
+                        break;
+                    default:
+                        text1 = "Error in drawCardText method";
+                        text2 = "Error in UpgradeMenu class";
+                        break;
+                }
                 break;
         }
 
-        g2d.drawString(text, x - g2d.getFontMetrics().stringWidth(text) / 2, y);
+        g2d.drawString(text1, x - g2d.getFontMetrics().stringWidth(text1) / 2, y);
+        g2d.drawString(text2, x - g2d.getFontMetrics().stringWidth(text2) / 2, y + 35);
+        g2d.drawString(text3, x - g2d.getFontMetrics().stringWidth(text3) / 2, y + 80);
+        g2d.drawString(text4, x - g2d.getFontMetrics().stringWidth(text4) / 2, y + 115);
     }
 
     private void applyUpgrade(int rarity, int option) {
-        double multiplier = 1.0;
         switch (rarity) {
             case 0:
                 switch (option) {
-                    case 0:
+                    case 0: player.playerMaxHealth = (int)((player.playerMaxHealth * 1.05) + 0.5); break;
+                    case 1: enemyManager.enemyDroppedXp = enemyManager.enemyDroppedXp * 1.05; break;
+                    case 2: player.playerSpeed = (int)((player.playerSpeed * 1.05) + 0.5); break;
+                    case 3: player.activeWeapon.maxAmmo = (int)((player.activeWeapon.maxAmmo * 1.05) + 0.5); break;
+                    case 4: player.activeWeapon.range = player.activeWeapon.range * 1.05; break;
+                    case 5: player.activeWeapon.bulletSpeed = player.activeWeapon.bulletSpeed * 1.05; break;
+                    case 6: player.activeWeapon.shotCooldown = (long)(player.activeWeapon.shotCooldown * 0.95); break;
+                    case 7: player.activeWeapon.bulletDamage = player.activeWeapon.bulletDamage * 1.05; break;
+                    case 8: player.activeWeapon.ammoReloadCooldown = (long)(player.activeWeapon.ammoReloadCooldown * 0.95); break;
+                    case 9:
+                        if (!player.hasWeapon2) {
+                            player.addWeapon(1); //pistolGon
+                            player.hasWeapon2 = true;
+                        } else {
+                            Enemy.maxHealth = Enemy.maxHealth * 0.95;
+                        }
+                        break;
+
+                    default: System.out.println("Error in choice selection");
                 }
                 break;
             case 1:
+                switch (option) {
+                    case 0: player.playerMaxHealth = (int)((player.playerMaxHealth * 1.1) + 0.5); break;
+                    case 1: enemyManager.enemyDroppedXp = enemyManager.enemyDroppedXp * 1.1; break;
+                    case 2: player.playerSpeed = (int)((player.playerSpeed * 1.1) + 0.5); break;
+                    case 3: player.activeWeapon.maxAmmo = (int)((player.activeWeapon.maxAmmo * 1.1) + 0.5); break;
+                    case 4: player.activeWeapon.range = player.activeWeapon.range * 1.1; break;
+                    case 5: player.activeWeapon.bulletSpeed = player.activeWeapon.bulletSpeed * 1.1; break;
+                    case 6: player.activeWeapon.shotCooldown = (long)(player.activeWeapon.shotCooldown * 0.9); break;
+                    case 7: player.activeWeapon.bulletDamage = player.activeWeapon.bulletDamage * 1.1; break;
+                    case 8: player.activeWeapon.ammoReloadCooldown = (long)(player.activeWeapon.ammoReloadCooldown * 0.9); break;
+                    case 9:
+                        if (!player.hasWeapon3) {
+                            player.addWeapon(2); //rifleGon
+                            player.hasWeapon3 = true;
+                        } else if (!player.hasWeapon6) {
+                            player.addWeapon(5); //revolverGon
+                            player.hasWeapon6 = true;
+                        } else {
+                            Enemy.maxHealth = Enemy.maxHealth * 0.9;
+                        }
+                        break;
+                    default: System.out.println("Error in choice selection");
+                }
                 break;
             case 2:
+                switch (option) {
+                    case 0: player.playerMaxHealth = (int)((player.playerMaxHealth * 1.25) + 0.5); break;
+                    case 1: enemyManager.enemyDroppedXp = enemyManager.enemyDroppedXp * 1.25; break;
+                    case 2: break;
+                    case 3: player.activeWeapon.maxAmmo = (int)((player.activeWeapon.maxAmmo * 1.25) + 0.5); break;
+                    case 4: player.activeWeapon.range = player.activeWeapon.range * 1.25; break;
+                    case 5: player.activeWeapon.bulletSpeed = player.activeWeapon.bulletSpeed * 1.25; break;
+                    case 6: player.activeWeapon.shotCooldown = (long)(player.activeWeapon.shotCooldown * 0.75); break;
+                    case 7: player.activeWeapon.bulletDamage = player.activeWeapon.bulletDamage * 1.25; break;
+                    case 8: numberOfRerollsLeft += 1; break;
+                    case 9:
+                        if (!player.hasWeapon4) {
+                            player.addWeapon(3); //sniperGon
+                            player.hasWeapon4 = true;
+                        } else {
+                            Enemy.maxHealth = Enemy.maxHealth * 0.85;
+                        }
+                        player.addWeapon(4); break; //sniperGon
+                    default: System.out.println("Error in choice selection");
+                }
                 break;
             case 3:
+                switch (option) {
+                    case 0:
+                        if (!player.hasWeapon7) {
+                            player.addWeapon(6); //exoGon
+                            player.hasWeapon7 = true;
+                        } else {
+                            Enemy.maxHealth = Enemy.maxHealth * 0.8;
+                        }
+                        break;
+                    case 1: enemyManager.enemyDroppedXp = enemyManager.enemyDroppedXp * 1.5; break;
+                    case 2: break;
+                    case 3: player.activeWeapon.maxAmmo = (int)((player.activeWeapon.maxAmmo * 1.5) + 0.5); break;
+                    case 4:
+                        if (!player.hasWeapon9) {
+                            player.addWeapon(8); //laserGon
+                            player.hasWeapon9 = true;
+                        } else {
+                            Enemy.maxHealth = Enemy.maxHealth * 0.8;
+                        }
+                        break;
+                    case 5: break;
+                    case 6: player.activeWeapon.shotCooldown = (long)(player.activeWeapon.shotCooldown * 0.5); break;
+                    case 7: player.activeWeapon.bulletDamage = player.activeWeapon.bulletDamage * 1.5; break;
+                    case 8: numberOfRerollsLeft += 3; break;
+                    case 9:
+                        if (!player.hasWeapon5) {
+                            player.addWeapon(4); //miniGon
+                            player.hasWeapon5 = true;
+                        } else {
+                            Enemy.maxHealth = Enemy.maxHealth * 0.8;
+                        }
+                        break;
+                    default: System.out.println("Error in choice selection");
+                }
                 break;
             case 4:
+                switch (option) {
+                    case 0:
+                    case 1:
+                    case 2:
+                        if (!player.hasWeapon8) {
+                            player.addWeapon(7); //ICBM
+                            player.hasWeapon8 = true;
+                        } else {
+                            Enemy.maxHealth = Enemy.maxHealth * 0.75;
+                        }
+                        break;
+                    case 3:
+                    case 4:
+                    case 5:
+                        if (!player.hasWeapon12) {
+                            player.addWeapon(11); //Sentry
+                            player.hasWeapon12 = true;
+                        } else {
+                            Enemy.maxHealth = Enemy.maxHealth * 0.75;
+                        }
+                        break;
+                    case 6:
+                    case 7:
+                    case 8:
+                        if (!player.hasWeapon11) {
+                            player.addWeapon(10); //Homing missile
+                            player.hasWeapon11 = true;
+                        } else {
+                            Enemy.maxHealth = Enemy.maxHealth * 0.75;
+                        }
+                        break;
+                    case 9: enemyManager.clearEnemies(); break; //nuke
+                }
                 break;
         }
 
-        //switch (option) {
-            //case 0: player.activeWeapon.maxAmmo = (int)((player.activeWeapon.maxAmmo * multiplier) + 0.5); break; //rounds up
-            //case 1: player.activeWeapon.bulletSpeed = (int)((player.activeWeapon.bulletSpeed * multiplier) + 0.5); break;
-            //case 2: player.playerSpeed = (int)((player.playerSpeed * multiplier) + 0.5); break;
-            //case 3: player.playerMaxHealth = (int)((player.playerMaxHealth * multiplier) + 0.5); break;
-            //case 4: enemyManager.enemyDroppedXp = enemyManager.enemyDroppedXp*multiplier; break;
-            //case 5: player.addWeapon(4);
-        //}
         player.playerCurrentHealth = player.playerMaxHealth; //heals player
     }
 

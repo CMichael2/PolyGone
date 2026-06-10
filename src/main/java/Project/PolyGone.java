@@ -7,8 +7,12 @@ ICS3U1 Final Project
 package Project;
 
 import Framework.Game; //package containing the abstract class game where all methods are inherited from
+
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
 import javax.swing.*;
 import java.awt.event.KeyEvent;
+import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.awt.*;
@@ -66,6 +70,8 @@ public class PolyGone extends Game {
     public void setCurrentState(GameState newState) {
         this.currentState = newState;
     }
+
+    private Clip backgroundMusicClip;
 
     private final Set<Integer> activeKeys = new HashSet<>(); //arraylist to store unlimited active keys
 
@@ -139,6 +145,8 @@ public class PolyGone extends Game {
 
         openMainMenu();
         this.isGameInitialStart = false;
+
+        playBackgroundMusic("Assets/menu_theme.wav");
     }
 
     @Override
@@ -304,6 +312,7 @@ public class PolyGone extends Game {
         if (mainMenu != null) {
             mainMenu.setMainMenuVisible(false);
         }
+        playBackgroundMusic("Assets/playing_theme.wav");
 
         GameMouseInput.isMouseLeftClickPressed = false;
         GameMouseInput.reset();
@@ -338,8 +347,9 @@ public class PolyGone extends Game {
             if (!pauseMenuKeyWasPressedLastFrame) {
                 if (currentState == GameState.PAUSED) {
                     if (pauseMenu != null) {
-                        if (pauseMenu.pauseMenuState == 2)
+                        if (pauseMenu.pauseMenuState == 2 || pauseMenu.pauseMenuState == 1) {
                             pauseMenu.pauseMenuState = 3;
+                        }
                     }
                 } else {
                     if (currentState != GameState.PAUSED && currentState == GameState.UPGRADE_MENU) {
@@ -451,6 +461,33 @@ public class PolyGone extends Game {
         System.out.println("Debug HUD toggled via menu: " + showDebugHUD);
     }
 
+    public void playBackgroundMusic(String filePath) {
+        //checks if music is playing to avoid overlays
+        stopBackgroundMusic();
+
+        try {
+            File musicFile = new File(filePath);
+            if (musicFile.exists()) {
+                backgroundMusicClip = AudioSystem.getClip();
+                backgroundMusicClip.open(AudioSystem.getAudioInputStream(musicFile));
+
+                backgroundMusicClip.loop(Clip.LOOP_CONTINUOUSLY);
+                backgroundMusicClip.start();
+            } else {
+                System.out.println("C418 Music file not found: " + filePath);
+            }
+        } catch (Exception e) {
+            System.out.println("Error playing background music: " + e.getMessage());
+        }
+    }
+
+    public void stopBackgroundMusic() {
+        if (backgroundMusicClip != null && backgroundMusicClip.isRunning()) {
+            backgroundMusicClip.stop();
+            backgroundMusicClip.close();
+        }
+    }
+
     public void gameLost() {
         if (player.playerCurrentHealth <= 0) {
             this.currentState = GameState.DEATH_SCREEN;
@@ -480,7 +517,7 @@ public class PolyGone extends Game {
             deathMenu.setDeathMenuVisible(false);
         }
 
-        for (Enemies e : enemyManager.getEnemiesList()) {
+        for (Enemy e : enemyManager.getEnemiesList()) {
             remove(e);
         }
         for (Bullets b : Bullets.getBulletsList()) {

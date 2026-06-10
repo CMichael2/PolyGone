@@ -1,6 +1,9 @@
 package Project;
 
 import Framework.GameObject;
+
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
 import java.awt.*;
 import java.io.File;
 import java.io.FileInputStream;
@@ -64,6 +67,14 @@ public class MainMenu extends GameObject {
     private int creditsCurrentY;
     private double animationCreditY;
 
+    private boolean wasNewGameHovered = false;
+    private boolean wasContinueHovered = false;
+    private boolean wasSettingsHovered = false;
+    private boolean wasCreditsHovered = false;
+    private boolean wasQuitHovered = false;
+    private boolean wasPlayHovered = false;
+    private boolean wasDeleteHovered = false;
+
     /**
      * Constructor that initializes the game object and fields
      * Pre: Game is initialized from the main method in PolyGone.java
@@ -126,11 +137,23 @@ public class MainMenu extends GameObject {
         g2d.setComposite(originalComposite); //resets composite so buttons are not faded
 
         //main menu buttons
-        drawMainMenuButtons(g2d, (int)currentButtonX, NEW_GAME_Y, GameMouseInput.mouseX, GameMouseInput.mouseY, "New Game");
-        drawMainMenuButtons(g2d, (int)currentButtonX, CONTINUE_Y, GameMouseInput.mouseX, GameMouseInput.mouseY, "Resume From Save");
-        drawMainMenuButtons(g2d, (int)currentButtonX, SETTINGS_Y, GameMouseInput.mouseX, GameMouseInput.mouseY, "Settings");
-        drawMainMenuButtons(g2d, (int)currentButtonX, CREDITS_Y, GameMouseInput.mouseX, GameMouseInput.mouseY, "Credits");
-        drawMainMenuButtons(g2d, (int)currentButtonX, QUIT_Y, GameMouseInput.mouseX, GameMouseInput.mouseY, "Quit");
+        boolean isNewGameNowHovered = drawMainMenuButtons(g2d, (int)currentButtonX, NEW_GAME_Y, GameMouseInput.mouseX, GameMouseInput.mouseY, "New Game");
+        boolean isContinueNowHovered = drawMainMenuButtons(g2d, (int)currentButtonX, CONTINUE_Y, GameMouseInput.mouseX, GameMouseInput.mouseY, "Resume From Save");
+        boolean isSettingsNowHovered = drawMainMenuButtons(g2d, (int)currentButtonX, SETTINGS_Y, GameMouseInput.mouseX, GameMouseInput.mouseY, "Settings");
+        boolean isCreditsNowHovered = drawMainMenuButtons(g2d, (int)currentButtonX, CREDITS_Y, GameMouseInput.mouseX, GameMouseInput.mouseY, "Credits");
+        boolean isQuitNowHovered = drawMainMenuButtons(g2d, (int)currentButtonX, QUIT_Y, GameMouseInput.mouseX, GameMouseInput.mouseY, "Quit");
+
+        if (isNewGameNowHovered && !wasNewGameHovered) playHoverSound();
+        if (isContinueNowHovered && !wasContinueHovered) playHoverSound();
+        if (isSettingsNowHovered && !wasSettingsHovered) playHoverSound();
+        if (isCreditsNowHovered && !wasCreditsHovered) playHoverSound();
+        if (isQuitNowHovered && !wasQuitHovered) playHoverSound();
+
+        wasNewGameHovered = isNewGameNowHovered;
+        wasContinueHovered = isContinueNowHovered;
+        wasSettingsHovered = isSettingsNowHovered;
+        wasCreditsHovered = isCreditsNowHovered;
+        wasQuitHovered = isQuitNowHovered;
 
         //only appears once continue from save button is clicked
         if (saveMenuState != 0) {
@@ -140,8 +163,14 @@ public class MainMenu extends GameObject {
             drawSaveFrame(g2d, SAVE_FRAME_X + 425, currentY, slotLines[1], 2, GameMouseInput.mouseX, GameMouseInput.mouseY);
             drawSaveFrame(g2d, SAVE_FRAME_X + 850, currentY, slotLines[2], 3, GameMouseInput.mouseX, GameMouseInput.mouseY);
 
-            drawSaveScreenButtons(g2d, SAVE_PLAY_BUTTON_X, currentY + SAVE_BUTTON_Y, GameMouseInput.mouseX, GameMouseInput.mouseY, "Play");
-            drawSaveScreenButtons(g2d, SAVE_DELETE_BUTTON_X, currentY + SAVE_BUTTON_Y, GameMouseInput.mouseX, GameMouseInput.mouseY, "Delete");
+            boolean isPlayNowHovered = drawSaveScreenButtons(g2d, SAVE_PLAY_BUTTON_X, currentY + SAVE_BUTTON_Y, GameMouseInput.mouseX, GameMouseInput.mouseY, "Play");
+            boolean isDeleteNowHovered = drawSaveScreenButtons(g2d, SAVE_DELETE_BUTTON_X, currentY + SAVE_BUTTON_Y, GameMouseInput.mouseX, GameMouseInput.mouseY, "Delete");
+
+            if (isPlayNowHovered && !wasPlayHovered) playHoverSound();
+            if (isDeleteNowHovered && !wasDeleteHovered) playHoverSound();
+
+            wasPlayHovered = isPlayNowHovered;
+            wasDeleteHovered = isDeleteNowHovered;
         }
 
         if (creditsMenuState != 0) {
@@ -160,7 +189,7 @@ public class MainMenu extends GameObject {
      * @param mouseY The player's mouses' current Y location
      * @param text The specific text that is displayed on the button such as "New Game" or "Settings"
      */
-    public void drawMainMenuButtons(Graphics2D g2d, int x, int y, int mouseX, int mouseY, String text) {
+    public boolean drawMainMenuButtons(Graphics2D g2d, int x, int y, int mouseX, int mouseY, String text) {
         x = x - BUTTON_WIDTH /2;
         y = y - BUTTON_HEIGHT /2;
 
@@ -215,6 +244,8 @@ public class MainMenu extends GameObject {
         int textX = x + (BUTTON_WIDTH - metrics.stringWidth(text)) / 2;
         int textY = y + ((BUTTON_HEIGHT - metrics.getHeight()) / 2) + metrics.getAscent() + 7;
         g2d.drawString(text, textX, textY);
+
+        return isHovered;
     }
 
     /**
@@ -303,7 +334,7 @@ public class MainMenu extends GameObject {
      * @param mouseY The player's mouses' current Y location
      * @param text The specific text that is displayed on the button such as "Play" or "Delete"
      */
-    public void drawSaveScreenButtons(Graphics2D g2d, int x, int y, int mouseX, int mouseY, String text) {
+    public boolean drawSaveScreenButtons(Graphics2D g2d, int x, int y, int mouseX, int mouseY, String text) {
         x = x - SAVE_BUTTON_WIDTH /2;
         y = y - BUTTON_HEIGHT /2;
 
@@ -358,6 +389,8 @@ public class MainMenu extends GameObject {
         int textX = x + (SAVE_BUTTON_WIDTH - metrics.stringWidth(text)) / 2;
         int textY = y + ((BUTTON_HEIGHT - metrics.getHeight()) / 2) + metrics.getAscent() + 4;
         g2d.drawString(text, textX, textY);
+
+        return isHovered;
     }
 
     public void drawCreditBox(Graphics2D g2d, int x, int y) {
@@ -440,14 +473,16 @@ public class MainMenu extends GameObject {
                     return;
                 }
                 game.saveSlotNumber = unfilledSaveSlot; //selects the save slot to be used for the new game
-                if (saveMenuState == 1 || saveMenuState == 2 || creditsMenuState == 1 || creditsMenuState == 2) { //if the save screen menu is open, close with the main menu
+                if (saveMenuState == 1 || saveMenuState == 2) { //if the save screen menu is open, close with the main menu
                     saveMenuState = 3;
-                    creditsMenuState = 3;
                     this.mainMenuState = 3;
-                } else if (saveMenuState == 0) {
+                } else if (creditsMenuState == 1 || creditsMenuState == 2){
+                    creditsMenuState = 3;
+                } else if (saveMenuState == 0 || creditsMenuState == 0) {
                     this.mainMenuState = 3;
                 }
                 game.prepareGameSession();
+                playClickSound();
                 System.out.println("Player began new playthrough");
                 return;
             }
@@ -466,7 +501,7 @@ public class MainMenu extends GameObject {
                     saveMenuState = 3;
                     selectedSave = 0;
                 }
-
+                playClickSound();
                 GameMouseInput.isMouseLeftClickPressed = false; //reset mouse inputs
                 GameMouseInput.reset();
                 System.out.println("Player has opened save selection screen");
@@ -494,7 +529,7 @@ public class MainMenu extends GameObject {
                 } else if (creditsMenuState == 1 || creditsMenuState == 2) { //if it is open it closes
                     creditsMenuState = 3; //slides down
                 }
-
+                playClickSound();
                 GameMouseInput.isMouseLeftClickPressed = false; //reset mouse inputs
                 GameMouseInput.reset();
                 System.out.println("Player has opened credits screen");
@@ -518,6 +553,7 @@ public class MainMenu extends GameObject {
                     } else {
                         selectedSave = 1;
                     }
+                    playClickSound();
                     GameMouseInput.isMouseLeftClickPressed = false;
                     GameMouseInput.reset();
                     System.out.println("Save 1 selected");
@@ -532,6 +568,7 @@ public class MainMenu extends GameObject {
                     } else {
                         selectedSave = 2;
                     }
+                    playClickSound();
                     GameMouseInput.isMouseLeftClickPressed = false;
                     GameMouseInput.reset();
                     System.out.println("Save 2 selected");
@@ -546,6 +583,7 @@ public class MainMenu extends GameObject {
                     } else {
                         selectedSave = 3;
                     }
+                    playClickSound();
                     GameMouseInput.isMouseLeftClickPressed = false;
                     GameMouseInput.reset();
                     System.out.println("Save 3 selected");
@@ -575,7 +613,7 @@ public class MainMenu extends GameObject {
                         System.out.println("Could not launch game: Save slot file is missing or corrupted");
                         selectedSave = 0;
                     }
-
+                    playClickSound();
                     GameMouseInput.isMouseLeftClickPressed = false;
                     GameMouseInput.reset();
                     return;
@@ -602,6 +640,7 @@ public class MainMenu extends GameObject {
                     loadSlotData(); //refreshes graphics so that the save frame does not show the deleted save's data
                     selectedSave = 0; //deselects the slot
 
+                    playClickSound();
                     GameMouseInput.isMouseLeftClickPressed = false;
                     GameMouseInput.reset();
                     return;
@@ -641,10 +680,8 @@ public class MainMenu extends GameObject {
                     slotLines[i - 1][1] = "Level: " + save.savedPlayerLevel;
                     slotLines[i - 1][2] = "Xp: " + String.format("%.1f", save.savedPlayerXp) + "/" + save.savedPlayerMaxXp;
                     slotLines[i - 1][3] = "Total Xp: " + save.savedPlayerTotalXp;
-                    slotLines[i - 1][4] = "Ammo: " + save.savedPlayerMaxAmmo;
-                    slotLines[i - 1][5] = "Player Speed: " + save.savedPlayerSpeed;
-                    slotLines[i - 1][6] = "Bullet Speed: " + String.format("%.1f", save.savedBulletSpeed);
-                    slotLines[i - 1][7] = "Enemy Dropped Xp: " + String.format("%.1f", save.savedEnemyDroppedXp);
+                    slotLines[i - 1][4] = "Player Speed: " + save.savedPlayerSpeed;
+                    slotLines[i - 1][5] = "Enemy Dropped Xp: " + String.format("%.1f", save.savedEnemyDroppedXp);
                 } catch (Exception e) {
                     slotLines[i - 1][0] = "Corrupted Save";
                     slotLines[i - 1][1] = "";
@@ -754,6 +791,32 @@ public class MainMenu extends GameObject {
                 game.activatePlayingState();
             }
 
+        }
+    }
+
+    private void playHoverSound() {
+        try {
+            File soundFile = new File("Assets/hover.wav");
+            if (soundFile.exists()) {
+                Clip clip = AudioSystem.getClip();
+                clip.open(AudioSystem.getAudioInputStream(soundFile));
+                clip.start();
+            }
+        } catch (Exception e) {
+            System.out.println("Error playing hover sound: " + e.getMessage());
+        }
+    }
+
+    private void playClickSound() {
+        try {
+            File soundFile = new File("Assets/click.wav");
+            if (soundFile.exists()) {
+                Clip clip = AudioSystem.getClip();
+                clip.open(AudioSystem.getAudioInputStream(soundFile));
+                clip.start();
+            }
+        } catch (Exception e) {
+            System.out.println("Error playing click sound: " + e.getMessage());
         }
     }
 }

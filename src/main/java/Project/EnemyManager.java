@@ -12,13 +12,13 @@ public class EnemyManager {
 
     //class enemy variables
     //placed here because enemies are spawned by the main game and follow code in enemies class
-    public ArrayList<Enemies> enemiesList = new ArrayList<>();
+    public ArrayList<Enemy> enemiesList = new ArrayList<>();
     private double enemySpeed = 4.0; //used to determine enemy speed, 66% of default player speed
     private long lastEnemySpawnTime = 0;
     public int baseEnemySpawnRate = 1500;
     public int enemySpawnRate = 1500; //used to determine the enemy spawn rate in milliseconds
     private boolean isFirstEnemy = true; //used to begin spawning of enemies
-    public double enemyDroppedXp = 200.0;
+    public double enemyDroppedXp = 1.0;
 
     /**
      * Constructor that initializes the game object and its attributes
@@ -38,7 +38,7 @@ public class EnemyManager {
      * Post: enemies list
      * @return enemies list
      */
-    public ArrayList<Enemies> getEnemiesList() {
+    public ArrayList<Enemy> getEnemiesList() {
         return this.enemiesList;
     }
 
@@ -48,7 +48,7 @@ public class EnemyManager {
      * Post: Empty enemies list
      */
     public void clearEnemies() {
-        for (Enemies e : enemiesList) {
+        for (Enemy e : enemiesList) {
             game.remove(e);
         }
         enemiesList.clear();
@@ -73,7 +73,7 @@ public class EnemyManager {
      */
     private void enemySpawning() {
         if (System.currentTimeMillis() - lastEnemySpawnTime > enemySpawnRate || isFirstEnemy) {
-            Enemies newEnemy = new Enemies();
+            Enemy newEnemy = new Enemy();
             newEnemy.enemyTimeOfSpawn = System.currentTimeMillis();
 
             enemySpawnPosition(newEnemy);
@@ -94,7 +94,7 @@ public class EnemyManager {
         }
     }
 
-    private void enemySpawnPosition(Enemies newEnemy) {
+    private void enemySpawnPosition(Enemy newEnemy) {
         Random r = new Random();
         final int ENEMY_SPAWN_POSITION_BUFFER = 30;
         int side = r.nextInt(4);
@@ -125,7 +125,7 @@ public class EnemyManager {
     private void enemyBehaviorUpdates() {
         //handles the creation and deletion of enemies based on enemies class
         for (int i = 0; i < enemiesList.size(); i++) {
-            Enemies e = enemiesList.get(i);
+            Enemy e = enemiesList.get(i);
 
             //calls method in enemies class for enemy movement and enemy default collision with PLAYER
             if (e.enemyMovementUpdates(game, player, enemySpeed)) {

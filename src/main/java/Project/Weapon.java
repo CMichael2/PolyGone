@@ -15,10 +15,11 @@ public class Weapon {
     public long ammoReloadCooldown = 3000; //sets ammo bar reload time
     public long lastAmmoRegenTime = 0; //do not change
     public boolean isReloading = false;
+    public double range;
 
     public String weaponName;
 
-    public Weapon(PolyGone game, Player player, double bulletSpeed, long shotCooldown, double bulletDamage, int maxAmmo, long reloadTime, String weaponName) {
+    public Weapon(PolyGone game, Player player, double bulletSpeed, long shotCooldown, double bulletDamage, int maxAmmo, long reloadTime, double range, String weaponName) {
         this.game = game;
         this.player = player;
         this.bulletSpeed = bulletSpeed;
@@ -28,6 +29,7 @@ public class Weapon {
         this.currentAmmo = maxAmmo;
         this.ammoReloadCooldown = reloadTime;
         this.weaponName = weaponName;
+        this.range = range;
     }
     public void updateAmmoRegen() {
         if ((currentAmmo == 0 || game.isKeyPressed(KeyEvent.VK_R)) && !isReloading && currentAmmo!=maxAmmo) { //only regens ammo when needed

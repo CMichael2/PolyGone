@@ -2,7 +2,6 @@ package Project;
 
 import Framework.GameObject;
 
-import java.awt.*;
 import java.util.ArrayList;
 
 /*
@@ -54,7 +53,7 @@ public class Bullets extends GameObject {
             int bulletPrevY = b.getY();
 
             //determines if a bullet should be removed based on return value of bulletUpdates()
-            if (b.bulletUpdates(game)) {
+            if (b.bulletUpdates(game, player)) {
                 bulletsList.remove(i);
                 i--;
                 continue; //to stop checking collision for removed bullets
@@ -82,11 +81,11 @@ public class Bullets extends GameObject {
      * @return True or false value based on the given conditions
      */
     private static boolean enemyAndBulletCollisionChecking(PolyGone game, Player player, EnemyManager enemyManager, Bullets b, int bulletPrevX, int bulletPrevY) {
-        ArrayList<Enemies> enemiesList = enemyManager.getEnemiesList();
+        ArrayList<Enemy> enemiesList = enemyManager.getEnemiesList();
 
         //loop to check if any bullet collides with any enemy
         for (int j = 0; j < enemiesList.size(); j++) { //cycles through all enemies
-            Enemies e = enemiesList.get(j);
+            Enemy e = enemiesList.get(j);
 
             //calls ray casting enemy collision method to check for collisions with bullets
             //or uses regular collision checking inherited from game object class
@@ -117,7 +116,7 @@ public class Bullets extends GameObject {
      * @param e Enemy being checked
      * @return True or false value based on the given conditions
      */
-    private static boolean bulletPathIntersectsEnemy(Bullets b, int bulletPrevX, int bulletPrevY, Enemies e) {
+    private static boolean bulletPathIntersectsEnemy(Bullets b, int bulletPrevX, int bulletPrevY, Enemy e) {
         int bulletCurrX = b.getX();
         int bulletCurrY = b.getY();
 
@@ -132,7 +131,7 @@ public class Bullets extends GameObject {
 
         //gets radii
         double bulletRadius = Player.bulletWidth / 2.0;
-        double enemyRadius = Enemies.enemyWidth / 2.0;
+        double enemyRadius = Enemy.enemyWidth / 2.0;
 
         //gets center of enemy
         double enemyX = e.getX() + (e.getWidth() / 2.0);
@@ -177,18 +176,15 @@ public class Bullets extends GameObject {
     private boolean isFirstFrame = true;
 
     public long bulletTimeOfFire = System.currentTimeMillis();
-    public int maxBulletLifeSpan = 1000; //change to determine the distance the bullets fly in milliseconds
-
     /**
-     * Handles bullet lifespan/range (range is determined by the lifespan)
+     * Handles bullet range and movement
      * Pre: Bullet exists
      * Post: The bullet's existence
      * @param game Parameter from PolyGone
-     * @return True if the bullet exceeded its lifespan and was removed, false otherwise
+     * @param player Parameter from Player
+     * @return True if the bullet exceeded its range and was removed, false otherwise
      */
-    public boolean bulletUpdates(PolyGone game) {
-        long bulletLifeSpan;
-
+    public boolean bulletUpdates(PolyGone game, Player player) {
         //casts bullet coordinates to double on first frame
         if (isFirstFrame) {
             exactX = this.getX();
@@ -204,11 +200,17 @@ public class Bullets extends GameObject {
         this.setX((int) Math.round(exactX));
         this.setY((int) Math.round(exactY));
 
-        bulletLifeSpan = System.currentTimeMillis() - this.bulletTimeOfFire; //gets bullet lifespan
+        double distanceFromPlayerX = Math.abs(exactX - player.getX());
+        double distanceFromPlayerY = Math.abs(exactY - player.getY());
 
-        if (bulletLifeSpan > maxBulletLifeSpan) { //checks if it has reached max lifespan
-            game.remove(this);
-            return true; //passes value to main game class to remove the bullet from the bullet list array in main game class
+        int distance = (int)Math.sqrt((distanceFromPlayerX*distanceFromPlayerX) + (distanceFromPlayerY*distanceFromPlayerY));
+
+        if (player.activeWeapon.range > 100) {
+            if (distance > player.activeWeapon.range) {
+                System.out.println(distance);
+                game.remove(this);
+                return true; //passes value to main game class to remove the bullet from the bullet list array in main game class
+            }
         }
         return false;
     }

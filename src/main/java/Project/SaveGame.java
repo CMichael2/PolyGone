@@ -11,9 +11,7 @@ public class SaveGame implements Serializable {
     public double savedPlayerXp;
     public int savedPlayerMaxXp;
     public int savedPlayerTotalXp;
-    public int savedPlayerMaxAmmo;
     public int savedPlayerSpeed;
-    public double savedBulletSpeed;
     public int savedEnemySpawnRate;
     public double savedEnemyDroppedXp;
     public boolean isFirstWin;
@@ -34,9 +32,7 @@ public class SaveGame implements Serializable {
         savedPlayerXp = player.currentPlayerXp;
         savedPlayerMaxXp = player.playerXPBarMaxXP;
         savedPlayerTotalXp = player.totalPlayerXp;
-        savedPlayerMaxAmmo = player.activeWeapon.maxAmmo;
         savedPlayerSpeed = player.playerSpeed;
-        savedBulletSpeed = player.activeWeapon.bulletSpeed;
         savedEnemySpawnRate = enemyManager.enemySpawnRate;
         savedEnemyDroppedXp = enemyManager.enemyDroppedXp;
         isFirstWin = game.firstWin;
@@ -70,9 +66,7 @@ public class SaveGame implements Serializable {
                 ", savedPlayerXp = " + savedPlayerXp +
                 ", savedPlayerMaxXp = " + savedPlayerMaxXp +
                 ", savedPlayerTotalXp = " + savedPlayerTotalXp +
-                ", savedPlayerMaxAmmo = " + savedPlayerMaxAmmo +
                 ", savedPlayerSpeed = " + savedPlayerSpeed +
-                ", savedBulletSpeed = " + savedBulletSpeed +
                 ", savedEnemySpawnRate = " + savedEnemySpawnRate +
                 ", savedEnemyDroppedXP = " + savedEnemyDroppedXp +
                 '}';
@@ -120,9 +114,7 @@ public class SaveGame implements Serializable {
         player.currentPlayerXp = this.savedPlayerXp;
         player.playerXPBarMaxXP = this.savedPlayerMaxXp;
         player.totalPlayerXp = this.savedPlayerTotalXp;
-        player.activeWeapon.maxAmmo = this.savedPlayerMaxAmmo;
         player.playerSpeed = this.savedPlayerSpeed;
-        player.activeWeapon.bulletSpeed = this.savedBulletSpeed;
         enemyManager.enemySpawnRate = this.savedEnemySpawnRate;
         enemyManager.enemyDroppedXp = this.savedEnemyDroppedXp;
         game.firstWin = this.isFirstWin;
