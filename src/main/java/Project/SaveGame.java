@@ -13,7 +13,6 @@ public class SaveGame implements Serializable {
     public int savedPlayerTotalXp;
     public int savedPlayerSpeed;
     public int savedEnemySpawnRate;
-    public double savedEnemyDroppedXp;
     public boolean isFirstWin;
 
     /**
@@ -33,8 +32,7 @@ public class SaveGame implements Serializable {
         savedPlayerMaxXp = player.playerXPBarMaxXP;
         savedPlayerTotalXp = player.totalPlayerXp;
         savedPlayerSpeed = player.playerSpeed;
-        savedEnemySpawnRate = enemyManager.enemySpawnRate;
-        savedEnemyDroppedXp = enemyManager.enemyDroppedXp;
+        savedEnemySpawnRate = enemyManager.enemyWaveSpawnRate;
         isFirstWin = game.firstWin;
 
         int saveNumber = game.saveSlotNumber;
@@ -68,7 +66,6 @@ public class SaveGame implements Serializable {
                 ", savedPlayerTotalXp = " + savedPlayerTotalXp +
                 ", savedPlayerSpeed = " + savedPlayerSpeed +
                 ", savedEnemySpawnRate = " + savedEnemySpawnRate +
-                ", savedEnemyDroppedXP = " + savedEnemyDroppedXp +
                 '}';
     }
 
@@ -115,8 +112,7 @@ public class SaveGame implements Serializable {
         player.playerXPBarMaxXP = this.savedPlayerMaxXp;
         player.totalPlayerXp = this.savedPlayerTotalXp;
         player.playerSpeed = this.savedPlayerSpeed;
-        enemyManager.enemySpawnRate = this.savedEnemySpawnRate;
-        enemyManager.enemyDroppedXp = this.savedEnemyDroppedXp;
+        enemyManager.enemyWaveSpawnRate = this.savedEnemySpawnRate;
         game.firstWin = this.isFirstWin;
 
         System.out.println("Save data values applied");

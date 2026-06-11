@@ -180,11 +180,9 @@ public class GUI extends GameObject {
 
         //draws ammo bar
         if (fillWidth > 0) { //only draws if the thickness is valid
-            g2d.setColor(new Color(190, 160, 0)); //dark yellow shadow bar
-            g2d.fillRect(x + 3, y + 3, fillWidth - 6, barHeight - 6);
 
             g2d.setColor(new Color(245, 215, 0)); //bright yellow ammo bar
-            g2d.fillRect(x + 3, y + 3, fillWidth - 6, 0);
+            g2d.fillRect(x + 3, y + 3, fillWidth - 6, barHeight - 6);
         }
     }
 

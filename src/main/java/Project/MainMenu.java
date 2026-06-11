@@ -681,7 +681,6 @@ public class MainMenu extends GameObject {
                     slotLines[i - 1][2] = "Xp: " + String.format("%.1f", save.savedPlayerXp) + "/" + save.savedPlayerMaxXp;
                     slotLines[i - 1][3] = "Total Xp: " + save.savedPlayerTotalXp;
                     slotLines[i - 1][4] = "Player Speed: " + save.savedPlayerSpeed;
-                    slotLines[i - 1][5] = "Enemy Dropped Xp: " + String.format("%.1f", save.savedEnemyDroppedXp);
                 } catch (Exception e) {
                     slotLines[i - 1][0] = "Corrupted Save";
                     slotLines[i - 1][1] = "";

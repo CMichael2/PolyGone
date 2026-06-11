@@ -32,7 +32,7 @@ public class UpgradeMenu extends GameObject {
 
     private final int REROLL_Y = 950;
     public int numberOfRerollsLeft = 10;
-    public int startingNumberOfRerolls = 10;
+    public int startingNumberOfRerolls = 100;
 
     private boolean hasMouseBeenReleasedSinceOpen = false;
 
@@ -61,6 +61,13 @@ public class UpgradeMenu extends GameObject {
     }
 
     private void rollUpgradeCards() {
+        //(note to self) decrease 1.x to reduce op cards
+        int commonChance = 70 - (int) (player.playerLevel * 1.4);
+        int uncommonChance = 90 - (int) (player.playerLevel * 1.2);
+        int rareChance = 96 - (int) (player.playerLevel * 0.9);
+        int epicChance = 99 - (int) (player.playerLevel * 0.3);
+        int legendaryChance = 100;
+
         Random random = new Random();
         for (int i = 0; i < 3; i++) {
             boolean isDuplicate;
@@ -81,16 +88,18 @@ public class UpgradeMenu extends GameObject {
             int roll = random.nextInt(100) + 1;
 
             //percentage based rarity rolling
-            if (roll <= 70) {
-                cardRarities[i] = 0; //70%
-            } else if (roll <= 90) {
-                cardRarities[i] = 1; //20%
-            } else if (roll <= 96) {
-                cardRarities[i] = 2; //6%
-            } else if (roll <= 99) {
-                cardRarities[i] = 3; //3%
+            if (roll <= commonChance) {
+                cardRarities[i] = 0; //common
+            } else if (roll <= uncommonChance) {
+                cardRarities[i] = 1; //uncommon
+            } else if (roll <= rareChance) {
+                cardRarities[i] = 2; //rare
+            } else if (roll <= epicChance) {
+                cardRarities[i] = 3; //epic
+            } else if (roll <= legendaryChance){
+                cardRarities[i] = 4; //legendary
             } else {
-                cardRarities[i] = 4; //1%
+                cardRarities[i] = 1; //exception/fallback
             }
             cardOptions[i] = rolledOption;
         }
@@ -498,9 +507,10 @@ public class UpgradeMenu extends GameObject {
                         text2 = "Get A Shield";
                         break;
                     case 6:
-                        text1 = "Just use a MiniGon at this point";
-                        text2 = "-50% Attack Cooldown";
-                        text3 = "To CURRENT Weapon";
+                        text1 = "Just use a MiniGon at ";
+                        text2 = "this point";
+                        text3 = "-50% Attack Cooldown";
+                        text4 = "To CURRENT Weapon";
                         break;
                     case 7:
                         text1 = "One shot enemies";
@@ -585,7 +595,7 @@ public class UpgradeMenu extends GameObject {
             case 0:
                 switch (option) {
                     case 0: player.playerMaxHealth = (int)((player.playerMaxHealth * 1.05) + 0.5); break;
-                    case 1: enemyManager.enemyDroppedXp = enemyManager.enemyDroppedXp * 1.05; break;
+                    case 1: enemyManager.enemyDroppedXpMultiplier = enemyManager.enemyDroppedXpMultiplier * 1.05; break;
                     case 2: player.playerSpeed = (int)((player.playerSpeed * 1.05) + 0.5); break;
                     case 3: player.activeWeapon.maxAmmo = (int)((player.activeWeapon.maxAmmo * 1.05) + 0.5); break;
                     case 4: player.activeWeapon.range = player.activeWeapon.range * 1.05; break;
@@ -598,7 +608,7 @@ public class UpgradeMenu extends GameObject {
                             player.addWeapon(1); //pistolGon
                             player.hasWeapon2 = true;
                         } else {
-                            Enemy.maxHealth = Enemy.maxHealth * 0.95;
+                            enemyManager.maxEnemyHealth = enemyManager.maxEnemyHealth * 0.95;
                         }
                         break;
 
@@ -608,7 +618,7 @@ public class UpgradeMenu extends GameObject {
             case 1:
                 switch (option) {
                     case 0: player.playerMaxHealth = (int)((player.playerMaxHealth * 1.1) + 0.5); break;
-                    case 1: enemyManager.enemyDroppedXp = enemyManager.enemyDroppedXp * 1.1; break;
+                    case 1: enemyManager.enemyDroppedXpMultiplier = enemyManager.enemyDroppedXpMultiplier * 1.1; break;
                     case 2: player.playerSpeed = (int)((player.playerSpeed * 1.1) + 0.5); break;
                     case 3: player.activeWeapon.maxAmmo = (int)((player.activeWeapon.maxAmmo * 1.1) + 0.5); break;
                     case 4: player.activeWeapon.range = player.activeWeapon.range * 1.1; break;
@@ -624,7 +634,7 @@ public class UpgradeMenu extends GameObject {
                             player.addWeapon(5); //revolverGon
                             player.hasWeapon6 = true;
                         } else {
-                            Enemy.maxHealth = Enemy.maxHealth * 0.9;
+                            enemyManager.maxEnemyHealth = enemyManager.maxEnemyHealth * 0.9;
                         }
                         break;
                     default: System.out.println("Error in choice selection");
@@ -633,7 +643,7 @@ public class UpgradeMenu extends GameObject {
             case 2:
                 switch (option) {
                     case 0: player.playerMaxHealth = (int)((player.playerMaxHealth * 1.25) + 0.5); break;
-                    case 1: enemyManager.enemyDroppedXp = enemyManager.enemyDroppedXp * 1.25; break;
+                    case 1: enemyManager.enemyDroppedXpMultiplier = enemyManager.enemyDroppedXpMultiplier * 1.25; break;
                     case 2: break;
                     case 3: player.activeWeapon.maxAmmo = (int)((player.activeWeapon.maxAmmo * 1.25) + 0.5); break;
                     case 4: player.activeWeapon.range = player.activeWeapon.range * 1.25; break;
@@ -646,7 +656,7 @@ public class UpgradeMenu extends GameObject {
                             player.addWeapon(3); //sniperGon
                             player.hasWeapon4 = true;
                         } else {
-                            Enemy.maxHealth = Enemy.maxHealth * 0.85;
+                            enemyManager.maxEnemyHealth = enemyManager.maxEnemyHealth * 0.85;
                         }
                         player.addWeapon(4); break; //sniperGon
                     default: System.out.println("Error in choice selection");
@@ -659,10 +669,10 @@ public class UpgradeMenu extends GameObject {
                             player.addWeapon(6); //exoGon
                             player.hasWeapon7 = true;
                         } else {
-                            Enemy.maxHealth = Enemy.maxHealth * 0.8;
+                            enemyManager.maxEnemyHealth = enemyManager.maxEnemyHealth * 0.8;
                         }
                         break;
-                    case 1: enemyManager.enemyDroppedXp = enemyManager.enemyDroppedXp * 1.5; break;
+                    case 1: enemyManager.enemyDroppedXpMultiplier = enemyManager.enemyDroppedXpMultiplier * 1.5; break;
                     case 2: break;
                     case 3: player.activeWeapon.maxAmmo = (int)((player.activeWeapon.maxAmmo * 1.5) + 0.5); break;
                     case 4:
@@ -670,7 +680,7 @@ public class UpgradeMenu extends GameObject {
                             player.addWeapon(8); //laserGon
                             player.hasWeapon9 = true;
                         } else {
-                            Enemy.maxHealth = Enemy.maxHealth * 0.8;
+                            enemyManager.maxEnemyHealth = enemyManager.maxEnemyHealth * 0.8;
                         }
                         break;
                     case 5: break;
@@ -682,7 +692,7 @@ public class UpgradeMenu extends GameObject {
                             player.addWeapon(4); //miniGon
                             player.hasWeapon5 = true;
                         } else {
-                            Enemy.maxHealth = Enemy.maxHealth * 0.8;
+                            enemyManager.maxEnemyHealth = enemyManager.maxEnemyHealth * 0.8;
                         }
                         break;
                     default: System.out.println("Error in choice selection");
@@ -697,7 +707,7 @@ public class UpgradeMenu extends GameObject {
                             player.addWeapon(7); //ICBM
                             player.hasWeapon8 = true;
                         } else {
-                            Enemy.maxHealth = Enemy.maxHealth * 0.75;
+                            enemyManager.maxEnemyHealth = enemyManager.maxEnemyHealth * 0.75;
                         }
                         break;
                     case 3:
@@ -707,7 +717,7 @@ public class UpgradeMenu extends GameObject {
                             player.addWeapon(11); //Sentry
                             player.hasWeapon12 = true;
                         } else {
-                            Enemy.maxHealth = Enemy.maxHealth * 0.75;
+                            enemyManager.maxEnemyHealth = enemyManager.maxEnemyHealth * 0.75;
                         }
                         break;
                     case 6:
@@ -717,7 +727,7 @@ public class UpgradeMenu extends GameObject {
                             player.addWeapon(10); //Homing missile
                             player.hasWeapon11 = true;
                         } else {
-                            Enemy.maxHealth = Enemy.maxHealth * 0.75;
+                            enemyManager.maxEnemyHealth = enemyManager.maxEnemyHealth * 0.75;
                         }
                         break;
                     case 9: enemyManager.clearEnemies(); break; //nuke

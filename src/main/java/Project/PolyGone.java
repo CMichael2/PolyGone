@@ -10,6 +10,7 @@ import Framework.Game; //package containing the abstract class game where all me
 
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
+import javax.sound.sampled.FloatControl;
 import javax.swing.*;
 import java.awt.event.KeyEvent;
 import java.io.File;
@@ -67,6 +68,9 @@ public class PolyGone extends Game {
         return this.currentState;
     }
 
+    private long lastFrameTime = System.nanoTime();
+    public static double deltaTime = 0.0;
+
     public void setCurrentState(GameState newState) {
         this.currentState = newState;
     }
@@ -104,7 +108,7 @@ public class PolyGone extends Game {
             monitorRefreshRate = 60;
         }
 
-        setVSync(true);
+        setVSync(false);
 
         this.addWindowFocusListener(new java.awt.event.WindowFocusListener() {
             @Override
@@ -151,6 +155,14 @@ public class PolyGone extends Game {
 
     @Override
     public void act() throws IOException {
+        long currentFrameTime = System.nanoTime();
+        deltaTime = (currentFrameTime - lastFrameTime) / 1000000000.0;
+        lastFrameTime = currentFrameTime;
+
+        if (deltaTime > 0.1) {
+            deltaTime = 0.1;
+        }
+
         openPauseMenu();
         openDebugHUD();
 
@@ -233,6 +245,7 @@ public class PolyGone extends Game {
         if (debugHUD != null) {
             this.getContentPane().setComponentZOrder(debugHUD, 2);
         }
+        playBackgroundMusic("Assets/playing_theme.wav");
         GameMouseInput.reset();
         this.repaint();
     }
@@ -471,6 +484,8 @@ public class PolyGone extends Game {
                 backgroundMusicClip = AudioSystem.getClip();
                 backgroundMusicClip.open(AudioSystem.getAudioInputStream(musicFile));
 
+                setClipVolume(backgroundMusicClip, 0.2f);
+
                 backgroundMusicClip.loop(Clip.LOOP_CONTINUOUSLY);
                 backgroundMusicClip.start();
             } else {
@@ -485,6 +500,25 @@ public class PolyGone extends Game {
         if (backgroundMusicClip != null && backgroundMusicClip.isRunning()) {
             backgroundMusicClip.stop();
             backgroundMusicClip.close();
+        }
+    }
+
+    public void setClipVolume(Clip clip, float volume) {
+        if (clip == null) return;
+
+        try {
+            if (clip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
+                FloatControl gainControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
+
+                if (volume < 0.0f) volume = 0.0f;
+                if (volume > 1.0f) volume = 1.0f;
+
+                //convert to db from linear scale
+                float dB = (float) (Math.log(volume == 0 ? 0.0001 : volume) / Math.log(10.0) * 20.0);
+                gainControl.setValue(dB);
+            }
+        } catch (Exception e) {
+            System.out.println("Error adjusting volume: " + e.getMessage());
         }
     }
 
@@ -540,9 +574,11 @@ public class PolyGone extends Game {
         player.currentWeaponIndex = 0;
 
         player.weaponsList.clear();
-        player.addWeapon(0);
+        player.addWeapon(0); //IMPORTANT: update this to the same as player constructor method
         player.currentWeaponIndex = 0;
 
+        enemyManager.isBoss = true;
+        enemyManager.enemyCount = 0;
         upgradeMenu.numberOfRerollsLeft = upgradeMenu.startingNumberOfRerolls;
         firstWin = true;
 

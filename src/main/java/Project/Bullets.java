@@ -10,6 +10,15 @@ Creation is handled in player class
  */
 public class Bullets extends GameObject {
 
+    //variables for bullet positioning
+    public double bulletVelocityX = 0;
+    public double bulletVelocityY = 0;
+    private double exactX;
+    private double exactY;
+    private boolean isFirstFrame = true;
+
+    public long bulletTimeOfFire = System.currentTimeMillis();
+
     private static ArrayList<Bullets> bulletsList = new ArrayList<>(); //creates arraylist of bullets
     public static double bulletDamage;
 
@@ -90,15 +99,24 @@ public class Bullets extends GameObject {
             //calls ray casting enemy collision method to check for collisions with bullets
             //or uses regular collision checking inherited from game object class
             if (e.collides(b) || bulletPathIntersectsEnemy(b, bulletPrevX, bulletPrevY, e)) {
+
+                int explosionX = b.getX() + (b.getWidth() / 2);
+                int explosionY = b.getY() + (b.getHeight() / 2);
+
                 e.health -= bulletDamage; //updates enemy health
 
-                //removes enemy when killed
-                if (e.health <= 0) {
-                    game.remove(e);
-                    enemiesList.remove(j);
-                    player.updatePlayerXP(enemyManager.enemyDroppedXp, game);
-                    game.repaint();
+                if (player.activeWeapon.hasSplashDamage) {
+                    triggerSplashDamage(game, player, enemyManager, explosionX, explosionY);
                 }
+                if (e.health <= 0) {
+                    if (enemiesList.contains(e)) {
+                        game.remove(e); //removes enemy when killed
+                        enemiesList.remove(e);
+                    }
+                    player.updatePlayerXP(e.enemyDroppedXp, game);
+                }
+                game.repaint();
+
                 return true;
             }
         }
@@ -121,7 +139,7 @@ public class Bullets extends GameObject {
         int bulletCurrY = b.getY();
 
         //only checks if the distance between the bullet and enemy is close enough that they might collide
-        int buffer = 100; //bullet travel in one frame
+        int buffer = (int) (300 * PolyGone.deltaTime) + 50; //bullet travel in one frame
         if (Math.abs(bulletCurrX - e.getX()) > buffer && Math.abs(bulletPrevX - e.getX()) > buffer) {
             return false;
         }
@@ -131,7 +149,7 @@ public class Bullets extends GameObject {
 
         //gets radii
         double bulletRadius = Player.bulletWidth / 2.0;
-        double enemyRadius = Enemy.enemyWidth / 2.0;
+        double enemyRadius = Enemy.enemySize / 2.0;
 
         //gets center of enemy
         double enemyX = e.getX() + (e.getWidth() / 2.0);
@@ -168,14 +186,6 @@ public class Bullets extends GameObject {
         return distanceSquared <= (combinedRadius * combinedRadius);
     }
 
-    //variables for bullet positioning
-    public double bulletVelocityX = 0;
-    public double bulletVelocityY = 0;
-    private double exactX;
-    private double exactY;
-    private boolean isFirstFrame = true;
-
-    public long bulletTimeOfFire = System.currentTimeMillis();
     /**
      * Handles bullet range and movement
      * Pre: Bullet exists
@@ -193,8 +203,8 @@ public class Bullets extends GameObject {
         }
 
         //adds velocity to the decimal position tracking
-        exactX += bulletVelocityX;
-        exactY += bulletVelocityY;
+        exactX += bulletVelocityX * PolyGone.deltaTime;
+        exactY += bulletVelocityY * PolyGone.deltaTime;
 
         //casts to int only for rendering
         this.setX((int) Math.round(exactX));
@@ -213,6 +223,45 @@ public class Bullets extends GameObject {
             }
         }
         return false;
+    }
+
+    private static void triggerSplashDamage(PolyGone game, Player player, EnemyManager enemyManager, int explosionX, int explosionY) {
+        ExplosionEffect visualBlast = new ExplosionEffect(game, explosionX, explosionY);
+        game.add(visualBlast);
+
+        game.getContentPane().setComponentZOrder(visualBlast, game.getContentPane().getComponentCount() - 1); //sets explosion to below enemies
+
+        ArrayList<Enemy> enemiesList = enemyManager.getEnemiesList();
+
+        //splash damage properties
+        double splashRadius = 150.0;
+        double splashDamage = bulletDamage * 0.75; //set to 75% of damage
+
+        //backwards loop to prevent errors
+        for (int i = enemiesList.size() - 1; i >= 0; i--) {
+            Enemy e = enemiesList.get(i);
+
+            if (e.health <= 0) continue;
+
+            //distance from enemy center to splash center
+            double enemyCenterX = e.exactX + (e.getWidth() / 2.0);
+            double enemyCenterY = e.exactY + (e.getHeight() / 2.0);
+
+            double dx = enemyCenterX - explosionX;
+            double dy = enemyCenterY - explosionY;
+            double distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance <= splashRadius) {  //if inside radius
+                e.health -= splashDamage;
+
+                if (e.health <= 0) {
+                    game.remove(e);
+                    enemiesList.remove(i);
+                    player.updatePlayerXP(e.enemyDroppedXp, game);
+                }
+            }
+        }
+        game.repaint();
     }
 
     @Override

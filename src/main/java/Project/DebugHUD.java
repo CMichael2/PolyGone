@@ -83,7 +83,7 @@ public class DebugHUD extends GameObject {
 
         drawRightAlignedString(g2d, "Max ammo: " + player.activeWeapon.maxAmmo, screenRightEdge, getHeight()- 165, FONT);
 
-        drawRightAlignedString(g2d, "Enemy spawn rate: Every " + (double)(enemyManager.enemySpawnRate)/1000 + " seconds", screenRightEdge, getHeight() - 185, FONT);
+        drawRightAlignedString(g2d, "Enemies per wave: " + enemyManager.totalEnemiesPerWave, screenRightEdge, getHeight() - 185, FONT);
     }
 
     /**

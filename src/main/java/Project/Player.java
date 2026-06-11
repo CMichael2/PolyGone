@@ -10,14 +10,14 @@ public class Player extends GameObject {
     PolyGone game;
     EnemyManager enemyManager;
 
-    public int playerSpeed = 6; //change to determine player movement speed and coordinate change per key press
+    public int playerSpeed = 180; //change to determine player movement speed and coordinate change per key press
 
     //health variables
     public int playerMaxHealth = 100;
     public int playerCurrentHealth = playerMaxHealth;
 
     //xp & level variables
-    public int startingPlayerLevel = 0; //starting player level
+    public int startingPlayerLevel = 48; //starting player level
     public int playerLevel = startingPlayerLevel;
     public double currentPlayerXp = 0;
     public int totalPlayerXp = 0;
@@ -25,8 +25,8 @@ public class Player extends GameObject {
     public final int PLAYER_XP_BAR_MAX_XP_BASE = 10;
 
     //variables for bullet creation placed here inside class that creates the object
-    public static int bulletWidth = 10; //please update width and height to the same values to prevent ellipse hitboxes
-    public static int bulletHeight = 10;
+    public static int bulletWidth = 20; //please update width and height to the same values to prevent ellipse hitboxes
+    public static int bulletHeight = 20;
 
     public static ArrayList<Weapon> weaponsList = new ArrayList<>();
     public int currentWeaponIndex = 0;
@@ -44,7 +44,7 @@ public class Player extends GameObject {
     public boolean hasWeapon12 = false; //sentry
 
     public Player(PolyGone mainGame, EnemyManager enemyManager) { //sets attributes for player game object
-        this.setSize(40, 40);
+        this.setSize(60, 60);
         this.setX((mainGame.getWidth() / 2) - (this.getHeight() / 2));
         this.setY((mainGame.getHeight() / 2) - (this.getHeight() / 2));
         this.setColor(Color.CYAN);
@@ -65,17 +65,19 @@ public class Player extends GameObject {
     public void playerMovementUpdate(PolyGone mainGame) {
         Weapon activeWeapon = weaponsList.get(currentWeaponIndex);
 
+        int moveAmount = (int) (playerSpeed * PolyGone.deltaTime);
+
         if (mainGame.isKeyPressed(KeyEvent.VK_W) || mainGame.isKeyPressed(KeyEvent.VK_UP)) {
-            setY(getY()-playerSpeed);
+            setY(getY()-moveAmount);
         }
         if (mainGame.isKeyPressed(KeyEvent.VK_S) || mainGame.isKeyPressed(KeyEvent.VK_DOWN)) {
-            setY(getY()+playerSpeed);
+            setY(getY()+moveAmount);
         }
         if (mainGame.isKeyPressed(KeyEvent.VK_A) || mainGame.isKeyPressed(KeyEvent.VK_LEFT)) {
-            setX(getX()-playerSpeed);
+            setX(getX()-moveAmount);
         }
         if (mainGame.isKeyPressed(KeyEvent.VK_D) || mainGame.isKeyPressed(KeyEvent.VK_RIGHT)) {
-            setX(getX()+playerSpeed);
+            setX(getX()+moveAmount);
         }
 
         //prevents player from exiting screen
@@ -100,51 +102,51 @@ public class Player extends GameObject {
 
         switch (weaponID) {
             case 0:
-                newWeapon = new Weapon(this.game, this, 12, 300, 4, 15, 2000, 400,"glock19");
+                newWeapon = new Weapon(this.game, this, 720, 300, 4, 20, 2000, 400, false,"glock19");
                 newWeapon.weaponName = "StartingGun"; //glock-19
                 break;
 
             case 1:
-                newWeapon = new Weapon(this.game, this, 10, 250, 3, 20, 2500, 550,"glock40");
+                newWeapon = new Weapon(this.game, this, 600, 250, 3, 30, 2500, 550, false,"glock40");
                 newWeapon.weaponName = "Pistol"; //glock-40
                 break;
 
             case 2:
-                newWeapon = new Weapon(this.game, this, 18, 200, 4, 30, 4000, 850,"ar15");
+                newWeapon = new Weapon(this.game, this, 1080, 200, 4, 35, 4000, 850, false,"ar15");
                 newWeapon.weaponName = "Rifle"; //AR-15
                 break;
 
             case 3: //add periceing
-                newWeapon = new Weapon(this.game, this, 25, 1000, 20, 5, 5000, 1000,"m82");
+                newWeapon = new Weapon(this.game, this, 1500, 1000, 20, 10, 5000, 1000, false,"m82");
                 newWeapon.weaponName = "Sniper"; //M82 sniper
                 break;
 
             case 4:
-                newWeapon = new Weapon(this.game, this, 20, 50, 2, 67, 15000, 200,"minigun");
+                newWeapon = new Weapon(this.game, this, 1200, 50, 2, 67, 15000, 200, false,"minigun");
                 newWeapon.weaponName = "Minigun"; //minigun134
                 break;
 
             case 5:
-                newWeapon = new Weapon(this.game, this, 15, 250, 5, 7, 3000, 400,"44mag");
+                newWeapon = new Weapon(this.game, this, 900, 250, 5, 10, 3000, 400, false,"44mag");
                 newWeapon.weaponName = "Revolver"; //44-magnum
                 break;
 
             case 6:
                 //makes an explosion on impact that does splash damage
-                newWeapon = new Weapon(this.game, this, 8, 400, 3, 10, 3000, 600, "exo");
+                newWeapon = new Weapon(this.game, this, 480, 400, 3, 15, 3000, 600, true, "exo");
                 newWeapon.weaponName = "ExoGun"; //EXO
                 break;
 
             case 7:
                 //makes an explosion on impact that instantly kills nearby enemies
                 //maybe also flies through enemies before impacting
-                newWeapon = new Weapon(this.game, this, 5, 10000, 100, 3, 50000, 1500, "icbm");
+                newWeapon = new Weapon(this.game, this, 300, 10000, 100, 3, 50000, 1500, true,"icbm");
                 newWeapon.weaponName = "ICBM"; //intercontinental ballistic missile
                 break;
 
             case 8:
                 //looks like a beam but each section(bullet) does a bit of damage that adds up as dozens of bullets shoot out at once
-                newWeapon = new Weapon(this.game, this, 20, 25, 0.5, 100, 10000, 750, "laser");
+                newWeapon = new Weapon(this.game, this, 1200, 25, 0.5, 100, 10000, 750, false,"laser");
                 newWeapon.weaponName = "Laser";
                 break;
 
@@ -284,9 +286,8 @@ public class Player extends GameObject {
         }
     }
 
-    public int updateHealth(int healthReduction) {
+    public void updateHealth(int healthReduction) {
         playerCurrentHealth -= healthReduction;
-        return playerCurrentHealth;
     }
 
     public void updatePlayerXP(double playerXPIncrease, PolyGone game) {
@@ -305,7 +306,7 @@ public class Player extends GameObject {
         }
         currentPlayerXp = 0; //reset xp
         this.playerXPBarMaxXP = 10 + (int)((Math.pow(playerLevel, 1.8)/4.0)+0.5); //calculates new xp level up requirements
-        enemyManager.enemySpawnRate = enemyManager.baseEnemySpawnRate - (playerLevel*25);
+        enemyManager.enemyCount = 0;
     }
 }
 
