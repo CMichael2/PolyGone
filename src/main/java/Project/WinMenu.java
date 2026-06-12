@@ -31,6 +31,11 @@ public class WinMenu extends GameObject {
     private final int PLAY_AGAIN_Y = 800;
     private final int QUIT_Y = 900;
 
+    private boolean wasKeepPlayHovered = false;
+    private boolean wasExitMainHovered = false;
+    private boolean wasPlayAgainHovered = false;
+    private boolean wasQuitHovered = false;
+
     /**
      * Constructor that initializes the game object and fields
      * Pre: Game is initialized from the main method in PolyGone.java
@@ -103,10 +108,20 @@ public class WinMenu extends GameObject {
 
         drawWinText(g2d);
 
-        drawButtons(g2d, buttonX, KEEP_PLAYING_Y, GameMouseInput.mouseX, GameMouseInput.mouseY, "Keep Playing");
-        drawButtons(g2d, buttonX, EXIT_TO_MAIN_MENU_Y, GameMouseInput.mouseX, GameMouseInput.mouseY, "Exit To Main Menu");
-        drawButtons(g2d, buttonX, PLAY_AGAIN_Y, GameMouseInput.mouseX, GameMouseInput.mouseY, "Play Again");
-        drawButtons(g2d, buttonX, QUIT_Y, GameMouseInput.mouseX, GameMouseInput.mouseY, "Quit");
+        boolean isKeepPlayHovered = drawButtons(g2d, buttonX, KEEP_PLAYING_Y, GameMouseInput.mouseX, GameMouseInput.mouseY, "Keep Playing");
+        boolean isExitMainHovered = drawButtons(g2d, buttonX, EXIT_TO_MAIN_MENU_Y, GameMouseInput.mouseX, GameMouseInput.mouseY, "Exit To Main Menu");
+        boolean isPlayAgainHovered = drawButtons(g2d, buttonX, PLAY_AGAIN_Y, GameMouseInput.mouseX, GameMouseInput.mouseY, "Play Again");
+        boolean isQuitHovered = drawButtons(g2d, buttonX, QUIT_Y, GameMouseInput.mouseX, GameMouseInput.mouseY, "Quit");
+
+        if (isKeepPlayHovered && !wasKeepPlayHovered) MusicSoundEffectsController.playHoverSound();
+        if (isExitMainHovered && !wasExitMainHovered) MusicSoundEffectsController.playHoverSound();
+        if (isPlayAgainHovered && !wasPlayAgainHovered) MusicSoundEffectsController.playHoverSound();
+        if (isQuitHovered && !wasQuitHovered) MusicSoundEffectsController.playHoverSound();
+
+        wasKeepPlayHovered = isKeepPlayHovered;
+        wasExitMainHovered = isExitMainHovered;
+        wasPlayAgainHovered = isPlayAgainHovered;
+        wasQuitHovered = isQuitHovered;
     }
 
     /**
@@ -137,7 +152,7 @@ public class WinMenu extends GameObject {
      * @param mouseY The player's mouses' current Y location
      * @param text The specific text that is displayed on the button such as "Play Again" or "Quit"
      */
-    public void drawButtons(Graphics2D g2d, int x, int y, int mouseX, int mouseY, String text) {
+    public boolean drawButtons(Graphics2D g2d, int x, int y, int mouseX, int mouseY, String text) {
         x = x - BUTTON_WIDTH /2;
         y = y - BUTTON_HEIGHT /2;
 
@@ -192,6 +207,8 @@ public class WinMenu extends GameObject {
         int textX = x + (BUTTON_WIDTH - metrics.stringWidth(text)) / 2;
         int textY = y + ((BUTTON_HEIGHT - metrics.getHeight()) / 2) + metrics.getAscent() + 7;
         g2d.drawString(text, textX, textY);
+
+        return isHovered;
     }
 
     /**
@@ -235,6 +252,7 @@ public class WinMenu extends GameObject {
                 game.openMainMenu();
                 mainMenu.selectedSave = 0;
                 mainMenu.saveMenuState = 0;
+                MusicSoundEffectsController.playClickSound();
                 System.out.println("Exited to main menu");
                 return;
             }
@@ -244,6 +262,9 @@ public class WinMenu extends GameObject {
             int pay = PLAY_AGAIN_Y - BUTTON_HEIGHT / 2;
             if (mouseX >= pax && mouseX <= pax + BUTTON_WIDTH && mouseY >= pay && mouseY <= pay + BUTTON_HEIGHT) {
                 game.gameReset();
+                GameMouseInput.reset();
+                GameMouseInput.isMouseLeftClickPressed = false;
+                MusicSoundEffectsController.playClickSound();
                 System.out.println("Player restarted play through");
                 return;
             }
@@ -251,10 +272,15 @@ public class WinMenu extends GameObject {
             int qx = buttonX - BUTTON_WIDTH / 2;
             int qy = QUIT_Y - BUTTON_HEIGHT / 2;
             if (mouseX >= qx && mouseX <= qx + BUTTON_WIDTH && mouseY >= qy && mouseY <= qy + BUTTON_HEIGHT) {
+                GameMouseInput.reset();
+                GameMouseInput.isMouseLeftClickPressed = false;
+                MusicSoundEffectsController.playClickSound();
                 game.exitGame();
                 return;
             }
         }
+        GameMouseInput.reset();
+        GameMouseInput.isMouseLeftClickPressed = false;
 
         this.repaint(); //do not remove, very important
     }

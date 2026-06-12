@@ -64,7 +64,6 @@ public class MainMenu extends GameObject {
     private final float FADE_SPEED = 0.05f;
     public int creditsMenuState = 0; //0 is closed, 1 is opening, 2 is open, 3 is closing
     private final int CREDITS_TARGET_Y;
-    private int creditsCurrentY;
     private double animationCreditY;
 
     private boolean wasNewGameHovered = false;
@@ -143,11 +142,11 @@ public class MainMenu extends GameObject {
         boolean isCreditsNowHovered = drawMainMenuButtons(g2d, (int)currentButtonX, CREDITS_Y, GameMouseInput.mouseX, GameMouseInput.mouseY, "Credits");
         boolean isQuitNowHovered = drawMainMenuButtons(g2d, (int)currentButtonX, QUIT_Y, GameMouseInput.mouseX, GameMouseInput.mouseY, "Quit");
 
-        if (isNewGameNowHovered && !wasNewGameHovered) playHoverSound();
-        if (isContinueNowHovered && !wasContinueHovered) playHoverSound();
-        if (isSettingsNowHovered && !wasSettingsHovered) playHoverSound();
-        if (isCreditsNowHovered && !wasCreditsHovered) playHoverSound();
-        if (isQuitNowHovered && !wasQuitHovered) playHoverSound();
+        if (isNewGameNowHovered && !wasNewGameHovered) MusicSoundEffectsController.playHoverSound();
+        if (isContinueNowHovered && !wasContinueHovered) MusicSoundEffectsController.playHoverSound();
+        if (isSettingsNowHovered && !wasSettingsHovered) MusicSoundEffectsController.playHoverSound();
+        if (isCreditsNowHovered && !wasCreditsHovered) MusicSoundEffectsController.playHoverSound();
+        if (isQuitNowHovered && !wasQuitHovered) MusicSoundEffectsController.playHoverSound();
 
         wasNewGameHovered = isNewGameNowHovered;
         wasContinueHovered = isContinueNowHovered;
@@ -166,8 +165,8 @@ public class MainMenu extends GameObject {
             boolean isPlayNowHovered = drawSaveScreenButtons(g2d, SAVE_PLAY_BUTTON_X, currentY + SAVE_BUTTON_Y, GameMouseInput.mouseX, GameMouseInput.mouseY, "Play");
             boolean isDeleteNowHovered = drawSaveScreenButtons(g2d, SAVE_DELETE_BUTTON_X, currentY + SAVE_BUTTON_Y, GameMouseInput.mouseX, GameMouseInput.mouseY, "Delete");
 
-            if (isPlayNowHovered && !wasPlayHovered) playHoverSound();
-            if (isDeleteNowHovered && !wasDeleteHovered) playHoverSound();
+            if (isPlayNowHovered && !wasPlayHovered) MusicSoundEffectsController.playHoverSound();
+            if (isDeleteNowHovered && !wasDeleteHovered) MusicSoundEffectsController.playHoverSound();
 
             wasPlayHovered = isPlayNowHovered;
             wasDeleteHovered = isDeleteNowHovered;
@@ -482,7 +481,7 @@ public class MainMenu extends GameObject {
                     this.mainMenuState = 3;
                 }
                 game.prepareGameSession();
-                playClickSound();
+                MusicSoundEffectsController.playClickSound();
                 System.out.println("Player began new playthrough");
                 return;
             }
@@ -501,7 +500,7 @@ public class MainMenu extends GameObject {
                     saveMenuState = 3;
                     selectedSave = 0;
                 }
-                playClickSound();
+                MusicSoundEffectsController.playClickSound();
                 GameMouseInput.isMouseLeftClickPressed = false; //reset mouse inputs
                 GameMouseInput.reset();
                 System.out.println("Player has opened save selection screen");
@@ -529,7 +528,7 @@ public class MainMenu extends GameObject {
                 } else if (creditsMenuState == 1 || creditsMenuState == 2) { //if it is open it closes
                     creditsMenuState = 3; //slides down
                 }
-                playClickSound();
+                MusicSoundEffectsController.playClickSound();
                 GameMouseInput.isMouseLeftClickPressed = false; //reset mouse inputs
                 GameMouseInput.reset();
                 System.out.println("Player has opened credits screen");
@@ -553,7 +552,7 @@ public class MainMenu extends GameObject {
                     } else {
                         selectedSave = 1;
                     }
-                    playClickSound();
+                    MusicSoundEffectsController.playClickSound();
                     GameMouseInput.isMouseLeftClickPressed = false;
                     GameMouseInput.reset();
                     System.out.println("Save 1 selected");
@@ -568,7 +567,7 @@ public class MainMenu extends GameObject {
                     } else {
                         selectedSave = 2;
                     }
-                    playClickSound();
+                    MusicSoundEffectsController.playClickSound();
                     GameMouseInput.isMouseLeftClickPressed = false;
                     GameMouseInput.reset();
                     System.out.println("Save 2 selected");
@@ -583,7 +582,7 @@ public class MainMenu extends GameObject {
                     } else {
                         selectedSave = 3;
                     }
-                    playClickSound();
+                    MusicSoundEffectsController.playClickSound();
                     GameMouseInput.isMouseLeftClickPressed = false;
                     GameMouseInput.reset();
                     System.out.println("Save 3 selected");
@@ -613,7 +612,7 @@ public class MainMenu extends GameObject {
                         System.out.println("Could not launch game: Save slot file is missing or corrupted");
                         selectedSave = 0;
                     }
-                    playClickSound();
+                    MusicSoundEffectsController.playClickSound();
                     GameMouseInput.isMouseLeftClickPressed = false;
                     GameMouseInput.reset();
                     return;
@@ -640,7 +639,7 @@ public class MainMenu extends GameObject {
                     loadSlotData(); //refreshes graphics so that the save frame does not show the deleted save's data
                     selectedSave = 0; //deselects the slot
 
-                    playClickSound();
+                    MusicSoundEffectsController.playClickSound();
                     GameMouseInput.isMouseLeftClickPressed = false;
                     GameMouseInput.reset();
                     return;
@@ -793,29 +792,5 @@ public class MainMenu extends GameObject {
         }
     }
 
-    private void playHoverSound() {
-        try {
-            File soundFile = new File("Assets/hover.wav");
-            if (soundFile.exists()) {
-                Clip clip = AudioSystem.getClip();
-                clip.open(AudioSystem.getAudioInputStream(soundFile));
-                clip.start();
-            }
-        } catch (Exception e) {
-            System.out.println("Error playing hover sound: " + e.getMessage());
-        }
-    }
 
-    private void playClickSound() {
-        try {
-            File soundFile = new File("Assets/click.wav");
-            if (soundFile.exists()) {
-                Clip clip = AudioSystem.getClip();
-                clip.open(AudioSystem.getAudioInputStream(soundFile));
-                clip.start();
-            }
-        } catch (Exception e) {
-            System.out.println("Error playing click sound: " + e.getMessage());
-        }
-    }
 }

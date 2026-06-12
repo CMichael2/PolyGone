@@ -108,13 +108,7 @@ public class Bullets extends GameObject {
                 if (player.activeWeapon.hasSplashDamage) {
                     triggerSplashDamage(game, player, enemyManager, explosionX, explosionY);
                 }
-                if (e.health <= 0) {
-                    if (enemiesList.contains(e)) {
-                        game.remove(e); //removes enemy when killed
-                        enemiesList.remove(e);
-                    }
-                    player.updatePlayerXP(e.enemyDroppedXp, game);
-                }
+                enemyManager.damageEnemy(e, bulletDamage);
                 game.repaint();
 
                 return true;
@@ -149,7 +143,7 @@ public class Bullets extends GameObject {
 
         //gets radii
         double bulletRadius = Player.bulletWidth / 2.0;
-        double enemyRadius = Enemy.enemySize / 2.0;
+        double enemyRadius = e.enemySize / 2.0;
 
         //gets center of enemy
         double enemyX = e.getX() + (e.getWidth() / 2.0);
@@ -252,13 +246,7 @@ public class Bullets extends GameObject {
             double distance = Math.sqrt(dx * dx + dy * dy);
 
             if (distance <= splashRadius) {  //if inside radius
-                e.health -= splashDamage;
-
-                if (e.health <= 0) {
-                    game.remove(e);
-                    enemiesList.remove(i);
-                    player.updatePlayerXP(e.enemyDroppedXp, game);
-                }
+                enemyManager.damageEnemy(e, splashDamage);
             }
         }
         game.repaint();

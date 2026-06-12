@@ -18,12 +18,12 @@ public class Enemy extends GameObject{
 
     public long enemyTimeOfSpawn = System.currentTimeMillis(); //used to track enemy spawn time
 
-    public static int enemySize;
+    public int enemySize;
 
     public double maxHealth; //change to non static and update the upgrade card using enemymanger (todo);
-    public double health; //change enemy health here
-    public int enemyDamage = 20; //change enemy damage here
-    public double enemyDroppedXp = 1.0;
+    public double health;
+    public int enemyDamage;
+    public double enemyDroppedXp;
 
     public boolean isBoss;
 
@@ -121,7 +121,8 @@ public class Enemy extends GameObject{
 
         //removes enemy from array and viewport in main game class
         if (this.collides(player)) {
-            mainGame.remove(this);
+            player.enemyCollide = true;
+            player.collideTime = System.currentTimeMillis();
             return true;
         }
         return false;

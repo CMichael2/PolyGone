@@ -17,7 +17,7 @@ public class Player extends GameObject {
     public int playerCurrentHealth = playerMaxHealth;
 
     //xp & level variables
-    public int startingPlayerLevel = 48; //starting player level
+    public int startingPlayerLevel = 0; //starting player level
     public int playerLevel = startingPlayerLevel;
     public double currentPlayerXp = 0;
     public int totalPlayerXp = 0;
@@ -29,6 +29,7 @@ public class Player extends GameObject {
     public static int bulletHeight = 20;
 
     public static ArrayList<Weapon> weaponsList = new ArrayList<>();
+    private final int STARTING_WEAPON_INDEX = 0; //change starting weapon here
     public int currentWeaponIndex = 0;
     Weapon activeWeapon;
     public boolean hasWeapon2 = false; //pistol
@@ -43,6 +44,11 @@ public class Player extends GameObject {
     public boolean hasWeapon11 = false; //homing
     public boolean hasWeapon12 = false; //sentry
 
+    public long collideTime;
+    public long previousCollideTime = 0;
+    public boolean enemyCollide = false;
+    private int invulnerabilityTime = 1000;
+
     public Player(PolyGone mainGame, EnemyManager enemyManager) { //sets attributes for player game object
         this.setSize(60, 60);
         this.setX((mainGame.getWidth() / 2) - (this.getHeight() / 2));
@@ -51,8 +57,26 @@ public class Player extends GameObject {
         this.game = mainGame;
         this.enemyManager = enemyManager;
         System.out.println(playerCurrentHealth);
-        addWeapon(0); //starting weapon
+        addWeapon(STARTING_WEAPON_INDEX); //starting weapon
         this.currentWeaponIndex = 0;
+    }
+
+    public void resetPlayer() {
+        playerCurrentHealth = playerMaxHealth; //resets player health
+
+        //moves player back to middle of the screen
+        setX((game.getWidth() / 2) - (getWidth() / 2));
+        setY((game.getHeight() / 2) - (getHeight() / 2));
+        playerLevel = startingPlayerLevel;
+        playerCurrentHealth = playerMaxHealth;
+        playerXPBarMaxXP = 10 + (int)((Math.pow(playerLevel, 1.8)/4.0)+0.5);;
+        currentPlayerXp = 0;
+        totalPlayerXp = 0;
+        currentWeaponIndex = 0;
+
+        weaponsList.clear();
+        addWeapon(STARTING_WEAPON_INDEX); //IMPORTANT: update this to the same as constructor method
+        currentWeaponIndex = 0;
     }
 
     @Override
@@ -60,6 +84,14 @@ public class Player extends GameObject {
         playerMovementUpdate(this.game);
         handlePlayerShooting(this.game, Bullets.getBulletsList());
         switchWeapon(this.game);
+        playerEnemyCollision();
+    }
+
+    public void playerEnemyCollision() {
+        if (enemyCollide && collideTime > (previousCollideTime + invulnerabilityTime)) {
+            //updateHealth(enemyManager.e.);
+        }
+        previousCollideTime = collideTime;
     }
 
     public void playerMovementUpdate(PolyGone mainGame) {

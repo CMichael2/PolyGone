@@ -16,11 +16,13 @@ public class EnemyManager {
     private double enemySpeed = 120.0; //used to determine enemy speed, 66% of default player speed
     private long lastEnemySpawnTime = 0;
     public int enemyWaveSpawnRate = 500; //used to determine the enemy spawn rate in milliseconds
-    public int enemyDefaultSpawnRate = 1000;
+    public int enemyDefaultSpawnRate = 3000;
     private boolean isFirstEnemy = true; //used to begin spawning of enemies
     public boolean isBoss = true;
     public double enemyDroppedXpMultiplier = 1.0;
     public double maxEnemyHealth;
+    public final int ENEMY_DAMAGE = 20;
+    public final int BOSS_DAMAGE = 75;
 
     public int waveNum = 0;
     public int totalEnemiesPerWave;
@@ -79,10 +81,10 @@ public class EnemyManager {
      */
     private void enemySpawning() {
         waveNum = player.playerLevel;
-        totalEnemiesPerWave = 5 + (int)((Math.pow(player.playerLevel, 1.6)/4.0)+0.5);
+        totalEnemiesPerWave = 8 + (int)((Math.pow(player.playerLevel, 1.6)/4.0)+0.5);
 
         if (((System.currentTimeMillis() - lastEnemySpawnTime > enemyWaveSpawnRate || isFirstEnemy) && enemyCount <= totalEnemiesPerWave) || (System.currentTimeMillis() - lastEnemySpawnTime > enemyDefaultSpawnRate))  {
-            Enemy newEnemy = new Enemy(10, 40, 1 + enemyDroppedXpMultiplier, false, 20);
+            Enemy newEnemy = new Enemy(10, 40, 1 * enemyDroppedXpMultiplier, false, ENEMY_DAMAGE);
             newEnemy.enemyTimeOfSpawn = System.currentTimeMillis();
 
             enemySpawnPosition(newEnemy);
@@ -105,7 +107,7 @@ public class EnemyManager {
         }
 
         if (player.playerLevel%5 == 0 && isBoss && player.playerLevel > 0) {
-            Enemy newEnemy = new Enemy(20 * player.playerLevel, 200, 10 * enemyDroppedXpMultiplier, true, 75);
+            Enemy newEnemy = new Enemy(20 * player.playerLevel, 200, 10 * enemyDroppedXpMultiplier, true, BOSS_DAMAGE);
             newEnemy.enemyTimeOfSpawn = System.currentTimeMillis();
 
             enemySpawnPosition(newEnemy);
@@ -162,10 +164,34 @@ public class EnemyManager {
 
                 player.updateHealth(e.enemyDamage);
 
-                //player death moved to main class
+                if (e.health > 0) {
+                    double playerCenterX = player.getX() + (player.getWidth() / 2.0);
+                    double playerCenterY = player.getY() + (player.getHeight() / 2.0);
+                    double enemyCenterX = e.exactX + (e.getWidth() / 2.0);
+                    double enemyCenterY = e.exactY + (e.getHeight() / 2.0);
 
-                enemiesList.remove(i);
-                i--;
+                    double knockbackX = enemyCenterX - playerCenterX;
+                    double knockbackY = enemyCenterY - playerCenterY;
+                    double distance = Math.sqrt(knockbackX * knockbackX + knockbackY * knockbackY);
+
+                    if (distance == 0) {
+                        knockbackX = 1;
+                        knockbackY = 0;
+                        distance = 1;
+                    }
+
+                    double knockbackForce = 15.0; //pixels
+
+                    e.exactX += (knockbackX / distance) * knockbackForce;
+                    e.exactY += (knockbackY / distance) * knockbackForce;
+
+                    e.setX((int) Math.round(e.exactX));
+                    e.setY((int) Math.round(e.exactY));
+
+                    e.setLocation(e.getX(), e.getY());
+                }
+
+                damageEnemy(e, 1); //damages enemy by 1
             }
         }
     }
@@ -224,5 +250,20 @@ public class EnemyManager {
                 }
             }
         }
+    }
+
+    public boolean damageEnemy(Enemy e, double damageAmount) {
+        e.health -= damageAmount;
+
+        if (e.health <= 0) {
+            if (enemiesList.contains(e)) {
+                game.remove(e);
+                enemiesList.remove(e);
+            }
+            player.updatePlayerXP(e.enemyDroppedXp, game);
+            game.repaint();
+            return true; //enemy died
+        }
+        return false;
     }
 }

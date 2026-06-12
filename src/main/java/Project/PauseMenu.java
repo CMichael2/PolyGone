@@ -30,6 +30,10 @@ public class PauseMenu extends GameObject {
     private int pauseY = 600;
     private int currentY;
 
+    private boolean wasResumeHovered = false;
+    private boolean wasSettingsHovered = false;
+    private boolean wasQuitHovered = false;
+
     public PauseMenu(PolyGone game, Player player, MainMenu mainMenu, EnemyManager enemyManager) {
         this.player = player;
         this.game = game;
@@ -84,13 +88,21 @@ public class PauseMenu extends GameObject {
         if (pauseMenuState != 0) {
             currentY = (int) animationSaveY;
 
-            drawButton(g2d, this.getWidth() / 2, currentY, GameMouseInput.mouseX, GameMouseInput.mouseY, "Resume");
-            drawButton(g2d, this.getWidth() / 2,  currentY + 90, GameMouseInput.mouseX, GameMouseInput.mouseY, "Settings");
-            drawButton(g2d, this.getWidth() / 2, currentY + 180, GameMouseInput.mouseX, GameMouseInput.mouseY, "Save & Quit");
+            boolean isResumeHovered = drawButton(g2d, this.getWidth() / 2, currentY, GameMouseInput.mouseX, GameMouseInput.mouseY, "Resume");
+            boolean isSettingsHovered = drawButton(g2d, this.getWidth() / 2,  currentY + 90, GameMouseInput.mouseX, GameMouseInput.mouseY, "Settings");
+            boolean isQuitHovered = drawButton(g2d, this.getWidth() / 2, currentY + 180, GameMouseInput.mouseX, GameMouseInput.mouseY, "Save & Quit");
+
+            if (isResumeHovered && !wasResumeHovered) MusicSoundEffectsController.playHoverSound();
+            if (isSettingsHovered && !wasSettingsHovered) MusicSoundEffectsController.playHoverSound();
+            if (isQuitHovered && !wasQuitHovered) MusicSoundEffectsController.playHoverSound();
+
+            wasResumeHovered = isResumeHovered;
+            wasSettingsHovered = isSettingsHovered;
+            wasQuitHovered = isQuitHovered;
         }
     }
 
-    public void drawButton(Graphics2D g2d, int x, int y, int mouseX, int mouseY, String text) {
+    public boolean drawButton(Graphics2D g2d, int x, int y, int mouseX, int mouseY, String text) {
         x = x - buttonWidth/2;
         y = y - buttonHeight/2;
 
@@ -147,6 +159,8 @@ public class PauseMenu extends GameObject {
         int textX = x + (buttonWidth - metrics.stringWidth(text)) / 2;
         int textY = y + ((buttonHeight - metrics.getHeight()) / 2) + metrics.getAscent() + 4;
         g2d.drawString(text, textX, textY);
+
+        return isHovered;
     }
 
     @Override
@@ -158,28 +172,31 @@ public class PauseMenu extends GameObject {
         int mouseY = GameMouseInput.mouseY;
 
         if (GameMouseInput.isMouseLeftClickPressed) {
+            //resume
             int rx = midX - buttonWidth / 2;
             int ry = (currentY) - buttonHeight / 2;
             if (mouseX >= rx && mouseX <= rx + buttonWidth && mouseY >= ry && mouseY <= ry + buttonHeight) {
                 GameMouseInput.reset();
                 GameMouseInput.isMouseLeftClickPressed = false;
                 pauseMenuState = 3;
+                MusicSoundEffectsController.playClickSound();
                 System.out.println("Player unpaused game");
                 return;
             }
-
-            int ex = midX - buttonWidth / 2;
-            int ey = (currentY + 90) - buttonHeight / 2;
-            if (mouseX >= ex && mouseX <= ex + buttonWidth && mouseY >= ey && mouseY <= ey + buttonHeight) {
+            //settings
+            int sx = midX - buttonWidth / 2;
+            int sy = (currentY + 90) - buttonHeight / 2;
+            if (mouseX >= sx && mouseX <= sx + buttonWidth && mouseY >= sy && mouseY <= sy + buttonHeight) {
                 isPauseMenuVisible = false;
                 game.openSettingsMenu();
                 animatePauseMenu();
+                MusicSoundEffectsController.playClickSound();
                 GameMouseInput.reset();
                 GameMouseInput.isMouseLeftClickPressed = false;
                 System.out.println("Player opened settings menu");
                 return;
             }
-
+            //exit to main
             int emx = midX - buttonWidth / 2;
             int emy = (currentY + 180) - buttonHeight / 2;
             if (mouseX >= emx && mouseX <= emx + buttonWidth && mouseY >= emy && mouseY <= emy + buttonHeight) {
@@ -192,6 +209,7 @@ public class PauseMenu extends GameObject {
                 game.openMainMenu();
                 mainMenu.selectedSave = 0;
                 mainMenu.saveMenuState = 0;
+                MusicSoundEffectsController.playClickSound();
                 System.out.println("Exited to main menu");
                 return;
             }

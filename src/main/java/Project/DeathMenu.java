@@ -26,10 +26,13 @@ public class DeathMenu extends GameObject {
     private final int BUTTON_HEIGHT = 70;
     private int buttonX;
 
-    private final int KEEP_PLAYING_Y = 600;
     private final int EXIT_TO_MAIN_MENU_Y = 700;
     private final int PLAY_AGAIN_Y = 800;
     private final int QUIT_Y = 900;
+
+    private boolean wasExitToMainHovered = false;
+    private boolean wasPlayAgainHovered = false;
+    private boolean wasQuitHovered = false;
 
     /**
      * Constructor that initializes the game object and fields
@@ -103,9 +106,17 @@ public class DeathMenu extends GameObject {
 
         drawLoseText(g2d);
 
-        drawButtons(g2d, buttonX, EXIT_TO_MAIN_MENU_Y, GameMouseInput.mouseX, GameMouseInput.mouseY, "Exit To Main Menu");
-        drawButtons(g2d, buttonX, PLAY_AGAIN_Y, GameMouseInput.mouseX, GameMouseInput.mouseY, "Play Again");
-        drawButtons(g2d, buttonX, QUIT_Y, GameMouseInput.mouseX, GameMouseInput.mouseY, "Quit");
+        boolean isExitToMainNowHovered = drawButtons(g2d, buttonX, EXIT_TO_MAIN_MENU_Y, GameMouseInput.mouseX, GameMouseInput.mouseY, "Exit To Main Menu");
+        boolean isPlayAgainNowHovered = drawButtons(g2d, buttonX, PLAY_AGAIN_Y, GameMouseInput.mouseX, GameMouseInput.mouseY, "Play Again");
+        boolean isQuitNowHovered = drawButtons(g2d, buttonX, QUIT_Y, GameMouseInput.mouseX, GameMouseInput.mouseY, "Quit");
+
+        if (isExitToMainNowHovered && !wasExitToMainHovered) MusicSoundEffectsController.playHoverSound();
+        if (isPlayAgainNowHovered && !wasPlayAgainHovered) MusicSoundEffectsController.playHoverSound();
+        if (isQuitNowHovered && !wasQuitHovered) MusicSoundEffectsController.playHoverSound();
+
+        wasExitToMainHovered = isExitToMainNowHovered;
+        wasPlayAgainHovered = isPlayAgainNowHovered;
+        wasQuitHovered = isQuitNowHovered;
     }
 
     /**
@@ -136,7 +147,7 @@ public class DeathMenu extends GameObject {
      * @param mouseY The player's mouses' current Y location
      * @param text The specific text that is displayed on the button such as "Play Again" or "Quit"
      */
-    public void drawButtons(Graphics2D g2d, int x, int y, int mouseX, int mouseY, String text) {
+    public boolean drawButtons(Graphics2D g2d, int x, int y, int mouseX, int mouseY, String text) {
         x = x - BUTTON_WIDTH /2;
         y = y - BUTTON_HEIGHT /2;
 
@@ -191,6 +202,8 @@ public class DeathMenu extends GameObject {
         int textX = x + (BUTTON_WIDTH - metrics.stringWidth(text)) / 2;
         int textY = y + ((BUTTON_HEIGHT - metrics.getHeight()) / 2) + metrics.getAscent() + 7;
         g2d.drawString(text, textX, textY);
+
+        return isHovered;
     }
 
     /**
@@ -221,6 +234,7 @@ public class DeathMenu extends GameObject {
                 game.openMainMenu();
                 mainMenu.selectedSave = 0;
                 mainMenu.saveMenuState = 0;
+                MusicSoundEffectsController.playClickSound();
                 System.out.println("Exited to main menu");
                 return;
             }
@@ -230,6 +244,7 @@ public class DeathMenu extends GameObject {
             int pay = PLAY_AGAIN_Y - BUTTON_HEIGHT / 2;
             if (mouseX >= pax && mouseX <= pax + BUTTON_WIDTH && mouseY >= pay && mouseY <= pay + BUTTON_HEIGHT) {
                 game.gameReset();
+                MusicSoundEffectsController.playClickSound();
                 System.out.println("Player restarted play through");
                 return;
             }

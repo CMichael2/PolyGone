@@ -785,6 +785,7 @@ public class UpgradeMenu extends GameObject {
 
                 if (mouseX >= cardLeft && mouseX <= cardLeft + CARD_WIDTH && mouseY >= cardTop && mouseY <= cardTop + CARD_HEIGHT) {
                     applyUpgrade(cardRarities[i], cardOptions[i]); //calls method that applies the chosen upgrade to the card
+                    MusicSoundEffectsController.playClickSound();
                     game.closeUpgradeMenu();
                     return;
                 }
@@ -801,6 +802,7 @@ public class UpgradeMenu extends GameObject {
             if ((mouseX >= rx && mouseX <= rx + BUTTON_WIDTH && mouseY >= ry && mouseY <= ry + BUTTON_HEIGHT) && (numberOfRerollsLeft > 0)) {
                 numberOfRerollsLeft -= 1;
                 setUpgradeMenuVisible(true);
+                MusicSoundEffectsController.playClickSound();
                 GameMouseInput.reset();
                 GameMouseInput.isMouseLeftClickPressed = false;
                 System.out.println("Player rerolled");

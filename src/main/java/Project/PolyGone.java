@@ -75,7 +75,7 @@ public class PolyGone extends Game {
         this.currentState = newState;
     }
 
-    private Clip backgroundMusicClip;
+
 
     private final Set<Integer> activeKeys = new HashSet<>(); //arraylist to store unlimited active keys
 
@@ -119,7 +119,7 @@ public class PolyGone extends Game {
             @Override
             public void windowLostFocus(java.awt.event.WindowEvent e) {
                 isGameFocused = false;
-                if (pauseMenu != null) {
+                if (pauseMenu != null && currentState != GameState.MAIN_MENU && currentState != GameState.SETTINGS_MENU) {
                     if (!pauseMenu.isPauseMenuVisible) {
                         pauseGame(true);
                     }
@@ -149,8 +149,6 @@ public class PolyGone extends Game {
 
         openMainMenu();
         this.isGameInitialStart = false;
-
-        playBackgroundMusic("Assets/menu_theme.wav");
     }
 
     @Override
@@ -239,13 +237,13 @@ public class PolyGone extends Game {
 
     public void openMainMenu() {
         this.currentState = GameState.MAIN_MENU;
+        MusicSoundEffectsController.updateMusic(this);
         if (mainMenu != null) mainMenu.setMainMenuVisible(true);
         this.getContentPane().setComponentZOrder(settingsMenu, 0);
         this.getContentPane().setComponentZOrder(mainMenu, 1);
         if (debugHUD != null) {
             this.getContentPane().setComponentZOrder(debugHUD, 2);
         }
-        playBackgroundMusic("Assets/playing_theme.wav");
         GameMouseInput.reset();
         this.repaint();
     }
@@ -313,7 +311,7 @@ public class PolyGone extends Game {
             System.out.println("Save loaded in background");
         } else {
             if (player != null) {
-                gameReset();
+                gameReset(); //resets game to remove previous save's data before starting game
             }
             System.out.println("New game started");
         }
@@ -325,7 +323,7 @@ public class PolyGone extends Game {
         if (mainMenu != null) {
             mainMenu.setMainMenuVisible(false);
         }
-        playBackgroundMusic("Assets/playing_theme.wav");
+        MusicSoundEffectsController.updateMusic(this);
 
         GameMouseInput.isMouseLeftClickPressed = false;
         GameMouseInput.reset();
@@ -337,6 +335,7 @@ public class PolyGone extends Game {
         if (settingsMenu != null) {
             settingsMenu.setSettingsMenuVisible(true);
         }
+        MusicSoundEffectsController.updateMusic(this);
         GameMouseInput.reset();
         GameMouseInput.isMouseLeftClickPressed = false;
         this.repaint();
@@ -350,6 +349,7 @@ public class PolyGone extends Game {
         if (previousState == GameState.PAUSED) {
             pauseMenu.setPauseMenuVisible(true);
         }
+        MusicSoundEffectsController.updateMusic(this);
         GameMouseInput.isMouseLeftClickPressed = false;
         GameMouseInput.reset();
     }
@@ -364,8 +364,8 @@ public class PolyGone extends Game {
                             pauseMenu.pauseMenuState = 3;
                         }
                     }
-                } else {
-                    if (currentState != GameState.PAUSED && currentState == GameState.UPGRADE_MENU) {
+                } else if (currentState != GameState.SETTINGS_MENU) {
+                    if (currentState == GameState.UPGRADE_MENU) {
                         long now = System.currentTimeMillis();
                         long timeSpentInUpgradeSoFar = now - upgradeMenuOpenTime;
                         for (Bullets b : Bullets.getBulletsList()) {
@@ -387,6 +387,7 @@ public class PolyGone extends Game {
         }
 
         this.currentState = GameState.PAUSED;
+        MusicSoundEffectsController.updateMusic(this);
 
         if (pauseMenu != null) {
             pauseMenu.setPauseMenuVisible(shouldPause);
@@ -421,6 +422,7 @@ public class PolyGone extends Game {
         if (this.currentState == GameState.UPGRADE_MENU) {
             this.upgradeMenuOpenTime = System.currentTimeMillis();
         }
+        MusicSoundEffectsController.updateMusic(this);
         GameMouseInput.isMouseLeftClickPressed = false;
         GameMouseInput.reset();
     }
@@ -429,6 +431,7 @@ public class PolyGone extends Game {
         this.currentState = GameState.UPGRADE_MENU;
         this.upgradeMenuOpenTime = System.currentTimeMillis();
         if (upgradeMenu != null) upgradeMenu.setUpgradeMenuVisible(true);
+        MusicSoundEffectsController.updateMusic(this);
         GameMouseInput.reset();
         this.repaint();
     }
@@ -445,6 +448,7 @@ public class PolyGone extends Game {
         if (upgradeMenu != null) {
             upgradeMenu.setUpgradeMenuVisible(false);
         }
+        MusicSoundEffectsController.updateMusic(this);
         GameMouseInput.isMouseLeftClickPressed = false;
         GameMouseInput.reset();
     }
@@ -474,61 +478,14 @@ public class PolyGone extends Game {
         System.out.println("Debug HUD toggled via menu: " + showDebugHUD);
     }
 
-    public void playBackgroundMusic(String filePath) {
-        //checks if music is playing to avoid overlays
-        stopBackgroundMusic();
-
-        try {
-            File musicFile = new File(filePath);
-            if (musicFile.exists()) {
-                backgroundMusicClip = AudioSystem.getClip();
-                backgroundMusicClip.open(AudioSystem.getAudioInputStream(musicFile));
-
-                setClipVolume(backgroundMusicClip, 0.2f);
-
-                backgroundMusicClip.loop(Clip.LOOP_CONTINUOUSLY);
-                backgroundMusicClip.start();
-            } else {
-                System.out.println("C418 Music file not found: " + filePath);
-            }
-        } catch (Exception e) {
-            System.out.println("Error playing background music: " + e.getMessage());
-        }
-    }
-
-    public void stopBackgroundMusic() {
-        if (backgroundMusicClip != null && backgroundMusicClip.isRunning()) {
-            backgroundMusicClip.stop();
-            backgroundMusicClip.close();
-        }
-    }
-
-    public void setClipVolume(Clip clip, float volume) {
-        if (clip == null) return;
-
-        try {
-            if (clip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
-                FloatControl gainControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
-
-                if (volume < 0.0f) volume = 0.0f;
-                if (volume > 1.0f) volume = 1.0f;
-
-                //convert to db from linear scale
-                float dB = (float) (Math.log(volume == 0 ? 0.0001 : volume) / Math.log(10.0) * 20.0);
-                gainControl.setValue(dB);
-            }
-        } catch (Exception e) {
-            System.out.println("Error adjusting volume: " + e.getMessage());
-        }
-    }
-
     public void gameLost() {
         if (player.playerCurrentHealth <= 0) {
             this.currentState = GameState.DEATH_SCREEN;
+            MusicSoundEffectsController.updateMusic(this);
             if (deathMenu != null) {
                 deathMenu.setDeathMenuVisible(true);
             }
-            System.out.println("Player has died");
+            System.out.println("Player has died" + this.currentState);
         }
     }
 
@@ -539,6 +496,7 @@ public class PolyGone extends Game {
             if (winMenu != null) {
                 winMenu.setWinMenuVisible(true);
             }
+            MusicSoundEffectsController.updateMusic(this);
             System.out.println("Player has won game");
         }
     }
@@ -561,21 +519,7 @@ public class PolyGone extends Game {
         enemyManager.clearEnemies();
         Bullets.clearAllBullets(this);
 
-        player.playerCurrentHealth = player.playerMaxHealth; //resets player health
-
-        //moves player back to middle of the screen
-        player.setX((this.getWidth() / 2) - (player.getWidth() / 2));
-        player.setY((this.getHeight() / 2) - (player.getHeight() / 2));
-        player.playerLevel = player.startingPlayerLevel;
-        player.playerCurrentHealth = player.playerMaxHealth;
-        player.playerXPBarMaxXP = 10 + (int)((Math.pow(player.playerLevel, 1.8)/4.0)+0.5);;
-        player.currentPlayerXp = 0;
-        player.totalPlayerXp = 0;
-        player.currentWeaponIndex = 0;
-
-        player.weaponsList.clear();
-        player.addWeapon(0); //IMPORTANT: update this to the same as player constructor method
-        player.currentWeaponIndex = 0;
+        player.resetPlayer();
 
         enemyManager.isBoss = true;
         enemyManager.enemyCount = 0;
@@ -586,6 +530,7 @@ public class PolyGone extends Game {
         GameMouseInput.reset();
 
         this.currentState = GameState.PLAYING;
+        MusicSoundEffectsController.updateMusic(this);
 
         this.repaint();
     }
